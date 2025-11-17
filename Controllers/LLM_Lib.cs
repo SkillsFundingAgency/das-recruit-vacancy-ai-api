@@ -24,7 +24,7 @@ namespace TestWebAPI.HelperObjects
     class SpellingChecks
     {
         public SpellingChecks() { }// class constructor
-        public List<AICheckOutput> Checks { get; set; }
+        public List<AICheckOutput> Checks { get; set; } = [];
         public AICheckOutput EvaluateAllSpellingChecks()
         {
             //function to concatenate spelling checks into a single field
@@ -47,7 +47,25 @@ namespace TestWebAPI.HelperObjects
         public List<AICheckOutput> shortlist_checks { get; set; } = [];
         public List<AICheckOutput> fulllist_checks { get; set; } = [];               
     }
+
+    public class InputObject
+    {
+        public string? VacancyId { get; set; } = "";
+        public string? VacancySnapshot_Title { get; set; } = "";
+        public string? VacancySnapshot_ShortDescription { get; set; } = "";
+        public string? VacancySnapshot_Description { get; set; } = "";
+        public string? VacancySnapshot_EmployerDescription { get; set; } = "";
+        public string? VacancySnapshot_Skills { get; set; } = "";
+        public string? VacancySnapshot_Qualifications { get; set; } = "";
+        public string? VacancySnapshot_ThingsToConsider { get; set; } = "";
+        public string? VacancySnapshot_TrainingDescription { get;set; } = "";
+        public string? VacancySnapshot_AdditionalTrainingDescription { get; set; } = "";
+        public string? Vacancy_Full { get; set; } = "";
+        public string? Vacancy_NoSkills { get; set; } = "";
+
+    }
 }
+
 
 namespace TestWebAPI.LLMWrapper
 {
@@ -78,7 +96,7 @@ namespace TestWebAPI.LLMWrapper
         {
             string js = new(File.ReadAllText(inputpath));
             //Console.WriteLine(js);
-            JSON_PROMPT jsondict = System.Text.Json.JsonSerializer.Deserialize<JSON_PROMPT>(js);
+            JSON_PROMPT jsondict = JsonSerializer.Deserialize<JSON_PROMPT>(js);
             //Console.WriteLine(jsondict);
 
             //call an empty dictionary constructor
@@ -198,21 +216,23 @@ namespace TestWebAPI.LLMWrapper
     }
 }
 
+
 namespace TestWebAPI.LLMExecutable
 {
     class LLMExec
     {
         public LLMExec() { } // class constructor - doesn't do anything
-        public string RunLLM(string inputvac) // simple LLM output returns a battery of tests
+        public string ExecLLM(string inputvac) // simple LLM output returns a battery of tests
         {
             //string dummyvac = new string("Apprenticeship vacacny in Nursing requiring staff aged 18+");
             string dummyvac = new string(inputvac); // copy constructor
 
             //temp object for vacancy
             Dictionary<string, string> Vacancy = new Dictionary<string, string>();
+
             Vacancy.Add("VacancyId", "VAC10234567");
-            Vacancy.Add("VacancySnapshot.Title", "Junior Software Developer"); 
-            Vacancy.Add("VacancySnapshot.ShortDescription", "Join our dynamic tech team as a Junior Software Developer, where you’ll contribute to building innovative applications and gain han3ds-on experience in modern development practices."); 
+            Vacancy.Add("VacancySnapshot.Title", "Junior Software Developer");
+            Vacancy.Add("VacancySnapshot.ShortDescription", "Join our dynamic tech team as a Junior Software Developer, where you’ll contribute to building innovative applications and gain han3ds-on experience in modern development practices.");
             Vacancy.Add("VacancySnapshot.Description", "We are seeking a motivated Junior Softwdare Developer to assist in designing, coding, and testing software solutions. You will work cl2osely wi th senior developers and project managers to deliver high-quality applications that meet client requirements. This role offers an excellent opportunity to grow your technical skills and advance your career in software development.");
             Vacancy.Add("VacancySnapshot.EmployerDescription", "TechNova Solutions is a forwtard-thinking technology company specializing in custom software development, cloud solutio ns, and digital transformation. Our mission is to empower businesses through cutting-edge technology and exceptional service.");
             Vacancy.Add("VacancySnapshot.Skills", "Proficiency in at least one programming language (e.g., Python, Java, C#)\r\nBasic understanding of web technologieps (HTML, CSS, JavaScript)\r\nProblem-solving and analytical thinking\r\nAbility to work collaboratively in a team environment\r\nStrong communication skills");
@@ -223,6 +243,13 @@ namespace TestWebAPI.LLMExecutable
             Vacancy.Add("Vacancy_Full", "\r\nTitle\r\nJunior Software Developer\r\n\r\nShort Description\r\nJoin our dynamic tech team as a Junior Sofware Devloper, where you’ll contribute to building innovative aipplications and gain hands-on experiencye in modern development pra ctices.\r\n\r\nDescription\r\nWe are seeking a motivated Junior Software Developer to assist in designing, coding, and testing software solutions. You will work closely with senior developers and project managers to deliver high-quality applications that meet client requirements. This role offers an excellent opportunity to grow your technical skills and advance your career in software development.\r\n\r\nEmployer Description\r\nTechNova Solutions is a forward-thinking technology company specializing in custom software development, cloud solutions, and digital transformation. Our mission is to empower businesses through cutting-edge technology and exceptional service.\r\n\r\nSkills\r\n\r\nProficiency in at least one programming language (e.g., Python, Java, C#)\r\nBasic understanding of web technologies (HTML, CSS, JavaScript)\r\nProblem-solving and analytical thinking\r\nAbility to work collaboratively in a team environment\r\nStrong communication skills\r\n\r\n\r\nQualifications\r\n\r\n 18+\r\r\nBachelor’s degree in Computer Science, Software Engineering, or related field (or equivalent experience)\r\nFamiliarity with version control systems (e.g., Git)\r\nKnowledge of software development lifecycle (SDLC)\r\n\r\n\r\nThings to Consider\r\n\r\nThis is an entry-level position with opportunities for growth\r\nHybrid work model (2 days in office, 3 days remote)\r\nOccasional overtime during project deadlines\r\nMust be eligible to work in the country\r\n\r\n\r\nTraining Description\r\nComprehensive onboarding program covering company tools, coding standards, and agile methodologies. You will receive mentorship from senior developers and participate in weekly knowledge-sharing sessions.\r\n\r\nAdditional Training Description\r\nAccess to online learning platforms for certifications in cloud technologies, advanced programming, and software architecture. Opportunities to attend industry conferences and workshops.");
             Vacancy.Add("Vacancy_NoSkills", "\r\nTitle\r\nJunior Software Developer\r\n\r\nShort Description\r\nJoin our dynamic tech team as a Junior Software Developer, where you’ll contribute to building innovative applications and gain hands-on experience in modern development practices.\r\n\r\nDescription\r\nWe are seeking a motivated Junior Software Developer to assist in designing, coding, and testing software solutions. You will work closely with senior developers and project managers to deliver high-quality applications that meet client requirements. This role offers an excellent opportunity to grow your technical skills and advance your career in software development.\r\n\r\nEmployer Description\r\nTechNova Solutions is a forward-thinking technology company specializing in custom software development, cloud solutions, and digital transformation. Our mission is to empower businesses through cutting-edge technology and exceptional service.\r\n\r\nSkills\r\n\r\nProficiency in at least one programming language (e.g., Python, Java, C#)\r\nBasic understanding of web technologies (HTML, CSS, JavaScript)\r\nProblem-solving and analytical thinking\r\nAbility to work collaboratively in a team environment\r\nStrong communication skills\r\n\r\n\r\nQualifications\r\n\r\nBachelor’s degree in Computer Science, Software Engineering, or related field (or equivalent experience)\r\nFamiliarity with version control systems (e.g., Git)\r\nKnowledge of software development lifecycle (SDLC)\r\n\r\n\r\nThings to Consider\r\n\r\nThis is an entry-level position with opportunities for growth\r\nHybrid work model (2 days in office, 3 days remote)\r\nOccasional overtime during project deadlines\r\nMust be eligible to work in the country\r\n\r\n\r\nTraining Description\r\nComprehensive onboarding program covering company tools, coding standards, and agile methodologies. You will receive mentorship from senior developers and participate in weekly knowledge-sharing sessions.\r\n\r\nAdditional Training Description\r\nAccess to online learning platforms for certifications in cloud technologies, advanced programming, and software architecture. Opportunities to attend industry conferences and workshops.");
 
+            string json_serialized_input = JsonSerializer.Serialize(Vacancy);
+            Console.WriteLine("INPUT JSON:");
+            Console.WriteLine(json_serialized_input);
+
+            InputObject Vacancy_input = JsonSerializer.Deserialize<InputObject>(json_serialized_input);
+
+            Console.WriteLine(Vacancy_input.ToString());
 
 
             Console.WriteLine("Hello, World!");
@@ -239,46 +266,61 @@ namespace TestWebAPI.LLMExecutable
                 llmprompt_discrim["SYSTEM_PROMPT"],
                 llmprompt_discrim["USER_HEADER"],
                 llmprompt_discrim["USER_INSTRUCTION"],
-                Vacancy["Vacancy_Full"]
+                Vacancy_input.Vacancy_Full
                 );
             Console.WriteLine("Text Inconsistency/ Missing content check");
             string llmoutputcheck_missingcontent = qa.CallLLM(
                 llmprompt_missingcontent["SYSTEM_PROMPT"],
                 llmprompt_missingcontent["USER_HEADER"],
                 llmprompt_missingcontent["USER_INSTRUCTION"],
-                Vacancy["Vacancy_Full"]
+                Vacancy_input.Vacancy_Full
             );
-            
+
             bool status_code_discrim = qa.FlagifyLLMResponse(llmoutputcheck_discrimination, false, false);
             bool status_code_missingcontent = qa.FlagifyLLMResponse(llmoutputcheck_missingcontent, true, false);
 
             Console.WriteLine(string.Format("DISCRIMINATION CHECK RESULT: {0}", [status_code_discrim]));
             if (status_code_discrim) {
-                Console.WriteLine(string.Format("DETAIL: {0} \n\n\n\n",[llmoutputcheck_discrimination]));
+                Console.WriteLine(string.Format("DETAIL: {0} \n\n\n\n", [llmoutputcheck_discrimination]));
             }
-            Console.WriteLine(string.Format("TEXT INCONSISTENCY CHECK RESULT: {0}",[status_code_missingcontent]));
+            Console.WriteLine(string.Format("TEXT INCONSISTENCY CHECK RESULT: {0}", [status_code_missingcontent]));
             if (status_code_missingcontent)
             {
-                Console.WriteLine(string.Format("DETAIL: {0} \n\n\n\n",[llmoutputcheck_missingcontent]));
+                Console.WriteLine(string.Format("DETAIL: {0} \n\n\n\n", [llmoutputcheck_missingcontent]));
             }
 
             //now we've got the codes, lets collect them in an object.
 
-            AICheckOutput  discrimcheck= new(status_code_discrim,llmoutputcheck_discrimination, "DiscriminationCheck");
-            AICheckOutput textinconsistencycheck = new(status_code_missingcontent,llmoutputcheck_missingcontent, "TextInconsistencyCheck");
-            List<AICheckOutput> aichecks_shortlist = [discrimcheck,textinconsistencycheck];
-                         
+            AICheckOutput discrimcheck = new(status_code_discrim, llmoutputcheck_discrimination, "DiscriminationCheck");
+            AICheckOutput textinconsistencycheck = new(status_code_missingcontent, llmoutputcheck_missingcontent, "TextInconsistencyCheck");
+            List<AICheckOutput> aichecks_shortlist = [discrimcheck, textinconsistencycheck];
+
             // Spelling & Grammar check(s)
             Console.WriteLine("Spelling & Grammar check");
-            List<string> listofkeys = new List<string>(Vacancy.Keys);
             
+
             //create set of spelling check
             SpellingChecks spellingChecks = new SpellingChecks();
             spellingChecks.Checks = new List<AICheckOutput>();
-            
-            foreach (string key in listofkeys) {
-                if (key.Contains("VacancySnapshot"))
-                {
+
+            Dictionary<string, string> spagcheckdict=new Dictionary<string, string>();
+            spagcheckdict.Add("Description", Vacancy_input.VacancySnapshot_Description);
+            spagcheckdict.Add("ShortDescription", Vacancy_input.VacancySnapshot_ShortDescription);
+            spagcheckdict.Add("Qualifications", Vacancy_input.VacancySnapshot_Qualifications);
+            spagcheckdict.Add("Skills", Vacancy_input.VacancySnapshot_Skills);
+            spagcheckdict.Add("Title",Vacancy_input.VacancySnapshot_Title);
+            spagcheckdict.Add("EmployerDescription", Vacancy_input.VacancySnapshot_EmployerDescription);
+            spagcheckdict.Add("TrainingDesiption", Vacancy_input.VacancySnapshot_TrainingDescription);
+            spagcheckdict.Add("AdditionalTrainingDescription", Vacancy_input.VacancySnapshot_AdditionalTrainingDescription);
+
+
+            List<string> listofkeys = new List<string>(spagcheckdict.Keys);
+
+
+
+
+
+            foreach (string key in listofkeys) {                
                     Console.WriteLine("SPELLING GRAMMAR CHECK FOR ");
                     Console.WriteLine(key);
                     
@@ -286,7 +328,7 @@ namespace TestWebAPI.LLMExecutable
                     llmprompt_spellingcheck["SYSTEM_PROMPT"],
                     llmprompt_spellingcheck["USER_HEADER"],
                     llmprompt_spellingcheck["USER_INSTRUCTION"],
-                    Vacancy[key]
+                    spagcheckdict[key]
                     );
                     bool status_code_spellinggramar_1 = qa.FlagifyLLMResponse(llmoutputcheck_spelling, false, true);
                     Console.WriteLine(string.Format("Spelling check Failure result for : {0} = {1}", [key, status_code_spellinggramar_1]));
@@ -294,11 +336,7 @@ namespace TestWebAPI.LLMExecutable
                         Console.WriteLine(string.Format("Detailed Result : {0} \n", [llmoutputcheck_spelling]));
                     }
                     AICheckOutput spag_check = new(status_code_spellinggramar_1,llmoutputcheck_spelling,string.Format("Spelling Check {0}", [key]));
-                    spellingChecks.Checks.Add(spag_check);
-                }
-                else {
-                    continue;
-                }
+                    spellingChecks.Checks.Add(spag_check);                
             }
 
             bool status_code_spellinggramar = (spellingChecks.EvaluateAllSpellingChecks()).m_CheckValue;
