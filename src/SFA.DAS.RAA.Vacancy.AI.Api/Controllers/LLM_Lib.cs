@@ -9,7 +9,6 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 {
     public class AICheckOutput
     { // define a simple bool and key pair struct so you can list the tests in order.
-        public AICheckOutput() { } // default constructor
         public AICheckOutput(bool checkval = false,string llmdebug="", string checkname = "")
         {
             Name = checkname;
@@ -178,7 +177,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
         private readonly Random rnd = new();
         public bool Allocator(TrafficLight traf) {
             
-            if ((traf.Traffic_light_rating_system_enum <= 0) | (traf.Traffic_light_rating_system_enum >3)) {
+            if ((traf.Traffic_light_rating_system_enum <= 0) || (traf.Traffic_light_rating_system_enum >3)) {
                 return true; // always review - should never happen
             }
             
@@ -229,11 +228,11 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
         public Dictionary<string, string> GetPrompts(string inputpath = "C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_V0_D1.json")
         {
             string js = new(File.ReadAllText(inputpath));
-            //Console.WriteLine(js);
+            
             ArgumentNullException.ThrowIfNull(js);
 
             JSON_PROMPT jsondict = JsonSerializer.Deserialize<JSON_PROMPT>(js);
-            //Console.WriteLine(jsondict);
+            
 
             //call an empty dictionary constructor
             Dictionary<string, string> outdict = new();
@@ -315,14 +314,14 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                  azureKeyCredential
               );
 
-            string InputDirective = string.Format("""
-                {0}
+            
+            string InputDirective = $"""
+                {MainDirective}
 
-                {1}
+                {AdditionalDirective}
 
-                {2}
-                """, [MainDirective, AdditionalDirective, VacancyTextToReview]);
-
+                {VacancyTextToReview}
+                """;
 
             ChatClient chatclient = azureclient.GetChatClient("gpt-4o");
             //Console.WriteLine(chatclient);
@@ -423,9 +422,6 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             List<string> listofkeys = new(spagcheckdict.Keys);
 
 
-
-
-
             foreach (string key in listofkeys) {                
                     Console.WriteLine("SPELLING GRAMMAR CHECK FOR ");
                     Console.WriteLine(key);
@@ -449,9 +445,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             aichecks_shortlist.Add(spellingChecks.EvaluateAllSpellingChecks());
             List<AICheckOutput> aiChecks_debug = aichecks_shortlist.Concat(spellingChecks.Checks).ToList();
 
-            string retline = string.Format("Discrimination flag (Failure=1): {0}, Text consistency (Failure = 1): {1}, Spelling Check (Failure =1): {2}", [status_code_discrim, status_code_missingcontent, status_code_spellinggramar]);
-            Console.WriteLine("StatusCodes");
-            Console.WriteLine(retline);
+            
 
 
             // initialize the traffic light system & Allocation system
