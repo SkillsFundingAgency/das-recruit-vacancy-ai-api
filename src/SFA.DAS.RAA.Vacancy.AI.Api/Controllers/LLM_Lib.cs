@@ -70,40 +70,29 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
         public string? Vacancy_full { get; set; } = "";
         public void Create_VacancyText()
         {
-            Vacancy_full = string.Format("""
-                Title: {0}
+            Vacancy_full = $"""
+                Title: {Title}
 
-                Short description: {1}
+                Short description: {Short_description}
 
-                Full description: {2}
+                Full description: {Description}
 
-                Employer description: {3}
+                Employer description: {Employer_description}
 
-                Training programme title: {4}
+                Training programme title: {Training_programme_title}
 
-                Training programme level (as set by user) {5}
+                Training programme level (as set by user) {Training_programme_level}
 
-                Training description: {6}
+                Training description: {Training_description}
 
-                Additional training description: {7}
+                Additional training description: {Additional_training_description}
 
-                Skills: {8}
+                Skills: {Skills}
 
-                Qualifications: {9}
+                Qualifications: {Qualifications}
 
-                Things to consider: {10}
-                """, [Title
-                ,Short_description
-                ,Description
-                ,Employer_description
-                ,Training_programme_title
-                ,Training_programme_level
-                ,Training_description
-                ,Additional_training_description
-                ,Skills
-                ,Qualifications
-                ,Things_to_consider
-                ]);
+                Things to consider: {Things_to_consider}
+                """;
         }
         
 
@@ -433,11 +422,11 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                     spagcheckdict[key]
                     );
                     bool status_code_spellinggramar_1 = qa.FlagifyLLMResponse(llmoutputcheck_spelling, false, true);
-                    Console.WriteLine(string.Format("Spelling check Failure result for : {0} = {1}", [key, status_code_spellinggramar_1]));
+                    Console.WriteLine($"Spelling check Failure result for : {key} = {status_code_spellinggramar_1}");
                     if (status_code_spellinggramar_1) {
-                        Console.WriteLine(string.Format("Detailed Result : {0} \n", [llmoutputcheck_spelling]));
+                        Console.WriteLine($"Detailed Result : {llmoutputcheck_spelling} \n");
                     }
-                    AICheckOutput spag_check = new(status_code_spellinggramar_1,llmoutputcheck_spelling,string.Format("Spelling Check {0}", [key]));
+                    AICheckOutput spag_check = new(status_code_spellinggramar_1,llmoutputcheck_spelling,$"Spelling Check {key}");
                     spellingChecks.Checks.Add(spag_check);                
             }
 
