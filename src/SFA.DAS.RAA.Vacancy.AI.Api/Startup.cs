@@ -40,8 +40,7 @@ internal class Startup
                 options.StorageConnectionString = configuration["ConfigurationStorageConnectionString"];
             });
         
-        Console.WriteLine(configuration["ConfigurationStorageConnectionString"]);
-        //Console.WriteLine(OptionsBuilderConfigurationExtensions.ConfigurationKeys)
+        Console.WriteLine(configuration["ConfigurationStorageConnectionString"]);        
 
     //#if DEBUG
         config.AddJsonFile("appsettings.Development.json", true);

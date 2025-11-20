@@ -301,7 +301,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             )
         {
             //function to Run the LLM code given a specific user directive
-            //Console.WriteLine("HELLO FROM INSIDE THE LLM CODE");
+            
 
             // ideally we want to read the JSON from a config, but this is hardcoded link to the relevant keys - we only need these keys.
             // we need a secret to store these properly, but this is a second order problem.
@@ -310,7 +310,6 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             string conn_key = configuration.GetSection("Values").GetValue<string>("VACANCYQA_LLM_KEY")?? "NO KEY DEFINED";
             string conn_URL = configuration.GetSection("Values").GetValue<string>("VACANCYQA_LLM_ENDPOINT_SHORT")?? "NO URL DEFINED";
 
-            // full URL: "https://api.education.gov.uk/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview"
             Uri LLMendpoint = new (conn_URL);
             AzureKeyCredential azureKeyCredential = new (conn_key);
             AzureOpenAIClient azureclient = new(
@@ -340,8 +339,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                     ]
              );
             var outputstring = new string(resp.Content[0].Text);
-            //Console.WriteLine("LLM OUTPUT");
-            //Console.WriteLine(outputstring);
+
             return outputstring;
         }
     }
@@ -358,29 +356,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             //apply method to get the vacancy from the spec
             Vacancy_input.Create_VacancyText();
           
-            /*
-            //temp object for vacancy
-            Dictionary<string, string> Vacancy = new Dictionary<string, string>();
-
-            Vacancy.Add("VacancyId", "VAC10234567");
-            Vacancy.Add("VacancySnapshot.Title", "Junior Software Developer");
-            Vacancy.Add("VacancySnapshot.ShortDescription", "Join our dynamic tech team as a Junior Software Developer, where you’ll contribute to building innovative applications and gain han3ds-on experience in modern development practices.");
-            Vacancy.Add("VacancySnapshot.Description", "We are seeking a motivated Junior Softwdare Developer to assist in designing, coding, and testing software solutions. You will work cl2osely wi th senior developers and project managers to deliver high-quality applications that meet client requirements. This role offers an excellent opportunity to grow your technical skills and advance your career in software development.");
-            Vacancy.Add("VacancySnapshot.EmployerDescription", "TechNova Solutions is a forwtard-thinking technology company specializing in custom software development, cloud solutio ns, and digital transformation. Our mission is to empower businesses through cutting-edge technology and exceptional service.");
-            Vacancy.Add("VacancySnapshot.Skills", "Proficiency in at least one programming language (e.g., Python, Java, C#)\r\nBasic understanding of web technologieps (HTML, CSS, JavaScript)\r\nProblem-solving and analytical thinking\r\nAbility to work collaboratively in a team environment\r\nStrong communication skills");
-            Vacancy.Add("VacancySnapshot.Qualifications", "Bachelor’s degree in Computer Science, Software Engineerping, or related field (or equivalent experience)\r\nFamiliarity with version control systems (e.g., Git)\r\nKnowledge of software development lifecycle (SDLC)");
-            Vacancy.Add("VacancySnapshot.ThingsToConsider", "This is an entry-level position with opportunities for growth\r\nHybrid work model (2 days in office, 3 days remote)\r\nOccasional overtime during project deadlines\r\nMust be eligible to work in the country");
-            Vacancy.Add("VacancySnapshot.TrainingDescription", "Comprehensive onboarding program covering company tools, coding standards, and agile methodologies. You will receive mentorship 5from senior developers and participate in weekly knowledge-sharing sessions.");
-            Vacancy.Add("VacancySnapshot.AdditionalTrainingDescription", "Access to online learning platforms for certifications in cloud technologies, advanced programming, and software archi4tecture. Opportunities to attend industry conferences and workshops.");
-            Vacancy.Add("Vacancy_Full", "\r\nTitle\r\nJunior Software Developer\r\n\r\nShort Description\r\nJoin our dynamic tech team as a Junior Sofware Devloper, where you’ll contribute to building innovative aipplications and gain hands-on experiencye in modern development pra ctices.\r\n\r\nDescription\r\nWe are seeking a motivated Junior Software Developer to assist in designing, coding, and testing software solutions. You will work closely with senior developers and project managers to deliver high-quality applications that meet client requirements. This role offers an excellent opportunity to grow your technical skills and advance your career in software development.\r\n\r\nEmployer Description\r\nTechNova Solutions is a forward-thinking technology company specializing in custom software development, cloud solutions, and digital transformation. Our mission is to empower businesses through cutting-edge technology and exceptional service.\r\n\r\nSkills\r\n\r\nProficiency in at least one programming language (e.g., Python, Java, C#)\r\nBasic understanding of web technologies (HTML, CSS, JavaScript)\r\nProblem-solving and analytical thinking\r\nAbility to work collaboratively in a team environment\r\nStrong communication skills\r\n\r\n\r\nQualifications\r\n\r\n 18+\r\r\nBachelor’s degree in Computer Science, Software Engineering, or related field (or equivalent experience)\r\nFamiliarity with version control systems (e.g., Git)\r\nKnowledge of software development lifecycle (SDLC)\r\n\r\n\r\nThings to Consider\r\n\r\nThis is an entry-level position with opportunities for growth\r\nHybrid work model (2 days in office, 3 days remote)\r\nOccasional overtime during project deadlines\r\nMust be eligible to work in the country\r\n\r\n\r\nTraining Description\r\nComprehensive onboarding program covering company tools, coding standards, and agile methodologies. You will receive mentorship from senior developers and participate in weekly knowledge-sharing sessions.\r\n\r\nAdditional Training Description\r\nAccess to online learning platforms for certifications in cloud technologies, advanced programming, and software architecture. Opportunities to attend industry conferences and workshops.");
-            Vacancy.Add("Vacancy_NoSkills", "\r\nTitle\r\nJunior Software Developer\r\n\r\nShort Description\r\nJoin our dynamic tech team as a Junior Software Developer, where you’ll contribute to building innovative applications and gain hands-on experience in modern development practices.\r\n\r\nDescription\r\nWe are seeking a motivated Junior Software Developer to assist in designing, coding, and testing software solutions. You will work closely with senior developers and project managers to deliver high-quality applications that meet client requirements. This role offers an excellent opportunity to grow your technical skills and advance your career in software development.\r\n\r\nEmployer Description\r\nTechNova Solutions is a forward-thinking technology company specializing in custom software development, cloud solutions, and digital transformation. Our mission is to empower businesses through cutting-edge technology and exceptional service.\r\n\r\nSkills\r\n\r\nProficiency in at least one programming language (e.g., Python, Java, C#)\r\nBasic understanding of web technologies (HTML, CSS, JavaScript)\r\nProblem-solving and analytical thinking\r\nAbility to work collaboratively in a team environment\r\nStrong communication skills\r\n\r\n\r\nQualifications\r\n\r\nBachelor’s degree in Computer Science, Software Engineering, or related field (or equivalent experience)\r\nFamiliarity with version control systems (e.g., Git)\r\nKnowledge of software development lifecycle (SDLC)\r\n\r\n\r\nThings to Consider\r\n\r\nThis is an entry-level position with opportunities for growth\r\nHybrid work model (2 days in office, 3 days remote)\r\nOccasional overtime during project deadlines\r\nMust be eligible to work in the country\r\n\r\n\r\nTraining Description\r\nComprehensive onboarding program covering company tools, coding standards, and agile methodologies. You will receive mentorship from senior developers and participate in weekly knowledge-sharing sessions.\r\n\r\nAdditional Training Description\r\nAccess to online learning platforms for certifications in cloud technologies, advanced programming, and software architecture. Opportunities to attend industry conferences and workshops.");
-
-            string json_serialized_input = JsonSerializer.Serialize(Vacancy);
-            Console.WriteLine("INPUT JSON:");
-            Console.WriteLine(json_serialized_input);
-
-            InputObject Vacancy_input = JsonSerializer.Deserialize<InputObject>(json_serialized_input);
-            */
+         
             Console.WriteLine(Vacancy_input.ToString());
             
 
