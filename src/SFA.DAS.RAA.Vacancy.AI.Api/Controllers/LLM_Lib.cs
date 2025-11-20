@@ -42,11 +42,11 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
     }
     class AICheckReturnResultObject
     {
-        public string VacancyID { get; set; } = "";
-        public List<AICheckOutput> AICheckOutput { get; set; } = [];
-        public List<AICheckOutput> DebugAICheckOutput { get; set; } = [];
-        public TrafficLight TrafficLightScore { get; set; } = new(-1);
-        public bool RecommendReview { get; set; } = false;
+        public string? VacancyID { get; set; } = "";
+        public List<AICheckOutput>? AICheckOutput { get; set; } = [];
+        public List<AICheckOutput>? DebugAICheckOutput { get; set; } = [];
+        public TrafficLight? TrafficLightScore { get; set; } = new(-1);
+        public bool? RecommendReview { get; set; } = false;
     }
 
     public class InputObject

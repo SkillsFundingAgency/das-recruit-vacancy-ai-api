@@ -5,6 +5,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[ProducesResponseType<AICheckReturnResultObject>(StatusCodes.Status200OK)]
 public class LlmController : ControllerBase
 {
     [HttpPost(Name = "RunLLM")]
