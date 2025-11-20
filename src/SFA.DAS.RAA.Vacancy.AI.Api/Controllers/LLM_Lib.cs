@@ -11,6 +11,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 {
     public class AICheckOutput
     { // define a simple bool and key pair struct so you can list the tests in order.
+        public AICheckOutput() { } // default constructor
         public AICheckOutput(bool checkval = false,string llmdebug="", string checkname = "")
         {
             Name = checkname;
@@ -176,7 +177,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
     public class ReviewAllocator {
         private readonly double Prob_Amber=0.5F;
         private readonly double Prob_Green = 0.01F;
-        private Random rnd = new Random();
+        private readonly Random rnd = new();
         public bool Allocator(TrafficLight traf) {
             
             if ((traf.Traffic_light_rating_system_enum <= 0) | (traf.Traffic_light_rating_system_enum >3)) {
@@ -237,7 +238,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             //Console.WriteLine(jsondict);
 
             //call an empty dictionary constructor
-            Dictionary<string, string> outdict = new Dictionary<string, string>();
+            Dictionary<string, string> outdict = new();
             outdict["SYSTEM_PROMPT"] = jsondict.SYSTEM_PROMPT ?? "-";
             outdict["USER_HEADER"] = jsondict.USER_HEADER ?? "-";
             outdict["USER_INSTRUCTION"] = jsondict.USER_INSTRUCTIONS ?? "-";
@@ -251,7 +252,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             , bool spelling_check = false
             )// we want the output to always be 1 = Test Failed, 0 = Test Passed (or null)
         {
-            string textfilt = new string(LLMtext);
+            string textfilt = new (LLMtext);
             string lowertext = textfilt.ToLower();
 
 
@@ -310,8 +311,8 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             string conn_URL = configuration.GetSection("Values").GetValue<string>("VACANCYQA_LLM_ENDPOINT_SHORT")?? "NO URL DEFINED";
 
             // full URL: "https://api.education.gov.uk/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview"
-            Uri LLMendpoint = new Uri(conn_URL);
-            AzureKeyCredential azureKeyCredential = new AzureKeyCredential(new(conn_key));
+            Uri LLMendpoint = new (conn_URL);
+            AzureKeyCredential azureKeyCredential = new (conn_key);
             AzureOpenAIClient azureclient = new(
                  LLMendpoint,
                  azureKeyCredential
@@ -431,10 +432,10 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             
 
             //create set of spelling check
-            SpellingChecks spellingChecks = new SpellingChecks();
-            spellingChecks.Checks = new List<AICheckOutput>();
+            SpellingChecks spellingChecks = new();
+            spellingChecks.Checks = new();
 
-            Dictionary<string, string> spagcheckdict=new Dictionary<string, string>();
+            Dictionary<string, string> spagcheckdict=new ();
             spagcheckdict.Add("Description", Vacancy_input.Description??"=");
             spagcheckdict.Add("ShortDescription", Vacancy_input.Short_description??"");
             spagcheckdict.Add("Qualifications", Vacancy_input.Qualifications??"-");
@@ -445,7 +446,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             spagcheckdict.Add("AdditionalTrainingDescription", Vacancy_input.Additional_training_description??"-");
 
 
-            List<string> listofkeys = new List<string>(spagcheckdict.Keys);
+            List<string> listofkeys = new(spagcheckdict.Keys);
 
 
 
