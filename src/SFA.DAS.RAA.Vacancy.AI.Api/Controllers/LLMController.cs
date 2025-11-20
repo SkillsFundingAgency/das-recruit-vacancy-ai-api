@@ -1,13 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
 
-//using SFA.DAS.RAA.Vacancy.AI.Api.Controllers.HelperObjects;
-//using SFA.DAS.RAA.Vacancy.AI.Api.Controllers.LLMExecutable;
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class LLMController : ControllerBase
+public class LlmController : ControllerBase
 {
     [HttpPost(Name = "RunLLM")]
     public IActionResult RunLLM([FromBody] InputObject inputvacancy)

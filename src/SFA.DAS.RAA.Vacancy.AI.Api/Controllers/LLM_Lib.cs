@@ -2,9 +2,7 @@
 using Azure.AI.OpenAI;
 using OpenAI.Chat;
 using Microsoft.AspNetCore.Mvc;
-//using SFA.DAS.RAA.Vacancy.AI.Api.Controllers.HelperObjects;
-//using SFA.DAS.RAA.Vacancy.AI.Api.Controllers.LLMWrapper;
-//using SFA.DAS.RAA.Vacancy.AI.Api.Controllers.LLMExecutable;
+
 using System.Text.Json;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
