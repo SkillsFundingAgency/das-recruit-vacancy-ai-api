@@ -132,23 +132,18 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
         
         public TrafficLight TrafficLightAssignment(List<AICheckOutput> Checklist) { 
             foreach (AICheckOutput check in Checklist){ 
-               if(check.Name.Contains("Discrimination")){
-                    if (check.Value == true) {
+               if(check.Name.Contains("Discrimination") && check.Value==true){                    
                         TrafficLight traf = new(3);
-                        return traf;
-                    }                    
+                        return traf;                    
                 }
-                if (check.Name.Contains("TextInconsistencyCheck")) {
-                    if (check.Value == true) {
+                if (check.Name.Contains("TextInconsistencyCheck") && check.Value==true) {                    
                         TrafficLight traf1 = new(3);
                         return traf1;
-                    }
+                   
                 }
-                if (check.Name.Contains("Spelling")) {
-                    if (check.Value == true) {
+                if (check.Name.Contains("Spelling") && check.Value==true) {                    
                         TrafficLight traf2 = new(2);
-                        return traf2;
-                    }
+                        return traf2;                    
                 }
             }
             // if it does not flag at any point, then we're OK to mark as green
@@ -200,19 +195,8 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
     public class VacancyQA
     {
         // class def for logging
-        private readonly ILogger<VacancyQA>? _logger;
-        private readonly string? _teststring;
 
-        public VacancyQA(ILogger<VacancyQA> logger)
-        {
-            _logger = logger;
-        }
-
-
-        public VacancyQA(string teststring = "t")
-        {
-            _teststring = teststring;
-        }
+    
 
         public Dictionary<string, string> GetPrompts(string inputpath = "C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_V0_D1.json")
         {
@@ -349,7 +333,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             Console.WriteLine("Hello, World!");
             //call class constructor for the VacancyQA class - call it without a logger method being passed in
             Console.WriteLine("Now running LLM code");
-            VacancyQA qa = new("Testlogger");
+            VacancyQA qa = new();
             Dictionary<string, string> llmprompt_discrim = qa.GetPrompts("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_V0_D1.json");
             Dictionary<string, string> llmprompt_missingcontent = qa.GetPrompts("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_TextConsistency.json");
             Dictionary<string, string> llmprompt_spellingcheck = qa.GetPrompts("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_SpellingAndGrammar.json");
