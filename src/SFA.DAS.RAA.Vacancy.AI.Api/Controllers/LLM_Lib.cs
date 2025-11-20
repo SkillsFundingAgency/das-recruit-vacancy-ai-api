@@ -2,16 +2,15 @@
 using Azure.AI.OpenAI;
 using OpenAI.Chat;
 using Microsoft.AspNetCore.Mvc;
-using TestWebAPI.HelperObjects;
-using TestWebAPI.LLMWrapper;
-using TestWebAPI.LLMExecutable;
+//using SFA.DAS.RAA.Vacancy.AI.Api.Controllers.HelperObjects;
+//using SFA.DAS.RAA.Vacancy.AI.Api.Controllers.LLMWrapper;
+//using SFA.DAS.RAA.Vacancy.AI.Api.Controllers.LLMExecutable;
 using System.Text.Json;
 
-namespace TestWebAPI.HelperObjects
+namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 {
     public class AICheckOutput
     { // define a simple bool and key pair struct so you can list the tests in order.
-
         public AICheckOutput(bool checkval = false,string llmdebug="", string checkname = "")
         {
             Name = checkname;
@@ -112,34 +111,35 @@ namespace TestWebAPI.HelperObjects
 
     }
     public class TrafficLight {
+        public int Traffic_light_rating_system_enum { get; set; } = 0;
+        public string Traffic_light_rating_system_description { get; set; } = "Green";
+
         public TrafficLight(int rating) {
-            traffic_light_rating_system_enum = rating;
+            Traffic_light_rating_system_enum = rating;
             if (rating <= 0) {
-                traffic_light_rating_system_description = "Not Defined - ";
+                Traffic_light_rating_system_description = "Not Defined - ";
             }
             else
             {
                 if (rating == 1)
                 {
-                    traffic_light_rating_system_description = "Green";
+                    Traffic_light_rating_system_description = "Green";
                 }
                 else if (rating == 2)
                 {
-                    traffic_light_rating_system_description = "Amber";
+                    Traffic_light_rating_system_description = "Amber";
                 }
                 else if (rating == 3) 
                 {
-                    traffic_light_rating_system_description = "Red";
+                    Traffic_light_rating_system_description = "Red";
                 }
                 else
                 {
-                    traffic_light_rating_system_description = "Not Defined +";
+                    Traffic_light_rating_system_description = "Not Defined +";
                 }
             }
         }
-        public int traffic_light_rating_system_enum { get; set; } = 0;
-        public string traffic_light_rating_system_description { get; set; } = "Green";        
-    
+
     }
     public class PrioritisationSystem {
         
@@ -174,20 +174,20 @@ namespace TestWebAPI.HelperObjects
         
     }
     public class ReviewAllocator {
-        private double Prob_Amber=0.5F;
-        private double Prob_Green = 0.01F;
+        private readonly double Prob_Amber=0.5F;
+        private readonly double Prob_Green = 0.01F;
         private Random rnd = new Random();
         public bool Allocator(TrafficLight traf) {
             
-            if ((traf.traffic_light_rating_system_enum <= 0) | (traf.traffic_light_rating_system_enum >3)) {
+            if ((traf.Traffic_light_rating_system_enum <= 0) | (traf.Traffic_light_rating_system_enum >3)) {
                 return true; // always review - should never happen
             }
             
             double rand =  rnd.NextDouble();
-            if ((traf.traffic_light_rating_system_enum == 3)) {
+            if ((traf.Traffic_light_rating_system_enum == 3)) {
                 return true;
             }
-            else if ((traf.traffic_light_rating_system_enum == 2))
+            else if ((traf.Traffic_light_rating_system_enum == 2))
             {
                 return rand <= Prob_Amber;
 
@@ -202,7 +202,7 @@ namespace TestWebAPI.HelperObjects
 }
 
 
-namespace TestWebAPI.LLMWrapper
+namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 {
     public class JSON_PROMPT
     {
@@ -347,7 +347,7 @@ namespace TestWebAPI.LLMWrapper
 }
 
 
-namespace TestWebAPI.LLMExecutable
+namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 {
     class LLMExec
     {
@@ -386,7 +386,7 @@ namespace TestWebAPI.LLMExecutable
             Console.WriteLine("Hello, World!");
             //call class constructor for the VacancyQA class - call it without a logger method being passed in
             Console.WriteLine("Now running LLM code");
-            LLMWrapper.VacancyQA qa = new("Testlogger");
+            VacancyQA qa = new("Testlogger");
             Dictionary<string, string> llmprompt_discrim = qa.GetPrompts("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_V0_D1.json");
             Dictionary<string, string> llmprompt_missingcontent = qa.GetPrompts("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_TextConsistency.json");
             Dictionary<string, string> llmprompt_spellingcheck = qa.GetPrompts("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_SpellingAndGrammar.json");
