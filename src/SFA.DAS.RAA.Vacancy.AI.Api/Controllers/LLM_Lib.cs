@@ -2,8 +2,8 @@
 using Azure.AI.OpenAI;
 using OpenAI.Chat;
 using Microsoft.AspNetCore.Mvc;
-
 using System.Text.Json;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 {
@@ -261,7 +261,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             }
         }
 
-
+        [ExcludeFromCodeCoverage] // Excluded from code coverage BECAUSE this relies on Azure OpenAI and is thus nondeterministic output.
         public string CallLLM(
             string SystemHeader = "'You are a reviewer of apprenticeship vacancies, and you must be clear, concise, professional and polite in your responses, and do not use slang, inappropriate language or emojis in any responses'"
 
@@ -330,7 +330,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             Console.WriteLine(Vacancy_input.ToString());
             
 
-            Console.WriteLine("Hello, World!");
+            
             //call class constructor for the VacancyQA class - call it without a logger method being passed in
             Console.WriteLine("Now running LLM code");
             VacancyQA qa = new();
