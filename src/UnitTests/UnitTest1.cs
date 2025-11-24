@@ -18,20 +18,21 @@ namespace UnitTests
         [Test]
         public void TestOneEquality()
         {
-            Assert.That(1,Is.EqualTo(1));
+            int one = 1;
+            Assert.That(one,Is.EqualTo(1));
         }
 
         [Test]
         public void CheckLLMFlagging_YES()
         {
-            VacancyQA vacqa = new VacancyQA();
+            VacancyQA vacqa = new();
             bool output = vacqa.FlagifyLLMResponse("YES", false, false);
             Assert.That(output,Is.True); // expect true
         }
         [Test]
         public void CheckLLMFlagging_NO()
         {
-            VacancyQA vacqa = new VacancyQA();
+            VacancyQA vacqa = new();
             bool output = vacqa.FlagifyLLMResponse("No", false, false);
 
             
@@ -58,7 +59,7 @@ namespace UnitTests
         [Test]
         public void CheckSpellingNo()
         {
-            VacancyQA vacqa = new VacancyQA();
+            VacancyQA vacqa = new();
             bool output = vacqa.FlagifyLLMResponse("None", false, true);
             
             Assert.That(output, Is.False);
@@ -102,11 +103,11 @@ namespace UnitTests
             // verify that an issue of discrimination _does_ flag the required property
             TrafficLight traf_verif = new(3);
 
-            List<AICheckOutput> outputs = new List<AICheckOutput>();
+            List<AICheckOutput> outputs = [];
             AICheckOutput dummy_discrim_check = new(true, "-", "DiscriminationCheck");
             outputs.Add(dummy_discrim_check);
 
-            PrioritisationSystem prio = new PrioritisationSystem();
+            PrioritisationSystem prio = new();
             TrafficLight trafval = prio.TrafficLightAssignment(outputs);
             // this should identify as RED
             Assert.That(trafval.Traffic_light_rating_system_enum, Is.EqualTo(traf_verif.Traffic_light_rating_system_enum));
@@ -119,11 +120,11 @@ namespace UnitTests
             // verify that an issue of discrimination _does_ flag the required property
             TrafficLight traf_verif = new(3);
 
-            List<AICheckOutput> outputs = new List<AICheckOutput>();
+            List<AICheckOutput> outputs = [];
             AICheckOutput dummy_discrim_check = new(true, "-", "TextInconsistencyCheck");
             outputs.Add(dummy_discrim_check);
 
-            PrioritisationSystem prio = new PrioritisationSystem();
+            PrioritisationSystem prio = new();
             TrafficLight trafval = prio.TrafficLightAssignment(outputs);
             // this should identify as RED
             Assert.That( trafval.Traffic_light_rating_system_enum,Is.EqualTo(traf_verif.Traffic_light_rating_system_enum));
@@ -134,10 +135,10 @@ namespace UnitTests
         {
             TrafficLight traf_verif = new(2); // Expecting it to be amber
 
-            List<AICheckOutput> outputs = new List<AICheckOutput>();
+            List<AICheckOutput> outputs = [];
             AICheckOutput dummy_text_check = new(true, "-", "SpellingCheck-allfields");
             outputs.Add(dummy_text_check);
-            PrioritisationSystem prio = new PrioritisationSystem();
+            PrioritisationSystem prio = new();
 
             TrafficLight trafval = prio.TrafficLightAssignment(outputs);
             Assert.That(trafval.Traffic_light_rating_system_enum,Is.EqualTo(traf_verif.Traffic_light_rating_system_enum));
@@ -150,13 +151,13 @@ namespace UnitTests
             AICheckOutput dummy_discrim_check = new(false, "-", "DiscriminationCheck");
             AICheckOutput dummy_text_check = new(false, "-", "TextInconsistencyCheck");
             AICheckOutput dummy_spelling_check = new(false, "-", "SpellingCheck-allfields");
-            List<AICheckOutput> outputs = new List<AICheckOutput>();
+            List<AICheckOutput> outputs = [];
 
             outputs.Add(dummy_discrim_check);
             outputs.Add(dummy_text_check);
             outputs.Add(dummy_spelling_check);
 
-            PrioritisationSystem prio = new PrioritisationSystem();
+            PrioritisationSystem prio = new();
             TrafficLight traf_val = prio.TrafficLightAssignment(outputs);
 
             Assert.That(traf_val.Traffic_light_rating_system_enum, Is.EqualTo(traf_verif.Traffic_light_rating_system_enum));

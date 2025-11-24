@@ -295,6 +295,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 
                 {VacancyTextToReview}
                 """;
+            // add a trycatch block here - LLM might not return a response so need to be careful!
 
             ChatClient chatclient = azureclient.GetChatClient("gpt-4o");
             //Console.WriteLine(chatclient);
@@ -308,6 +309,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                             )
                     ]
              );
+
             var outputstring = new string(resp.Content[0].Text);
 
             return outputstring;
