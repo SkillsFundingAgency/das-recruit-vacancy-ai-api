@@ -40,6 +40,14 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 
 
     }
+
+    public class  LLMReturnResult {
+        public string llmresponse { get; set; } = "";
+        public bool llm_error_flag { get; set; }=false;
+        public string exceptionmessage { get; set; } = "";
+        public string exceptiontype { get; set; } = "";
+    }
+
     class AICheckReturnResultObject
     {
         public string? VacancyID { get; set; } = "";
@@ -262,7 +270,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
         }
 
         [ExcludeFromCodeCoverage] // Excluded from code coverage BECAUSE this relies on Azure OpenAI and is thus nondeterministic output.
-        public string CallLLM(
+        public LLMReturnResult CallLLM(
             string SystemHeader = "'You are a reviewer of apprenticeship vacancies, and you must be clear, concise, professional and polite in your responses, and do not use slang, inappropriate language or emojis in any responses'"
 
             , string MainDirective = "Please assess the following vacancy for spelling / grammar errors, returning YES and explaining answers if you find any, or NO if you do not."
@@ -271,48 +279,58 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             )
         {
             //function to Run the LLM code given a specific user directive
+
+            try
+            {
+                // ideally we want to read the JSON from a config, but this is hardcoded link to the relevant keys - we only need these keys.
+                // we need a secret to store these properly, but this is a second order problem.
+                var configuration = new ConfigurationBuilder().AddJsonFile("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\testdotnetproject\\local.settings.json", optional: false, reloadOnChange: true)
+                .Build();
+                string conn_key = configuration.GetSection("Values").GetValue<string>("VACANCYQA_LLM_KEY") ?? "NO KEY DEFINED";
+                string conn_URL = configuration.GetSection("Values").GetValue<string>("VACANCYQA_LLM_ENDPOINT_SHORT") ?? "NO URL DEFINED";
+
+                Uri LLMendpoint = new(conn_URL);
+                AzureKeyCredential azureKeyCredential = new(conn_key);
+                AzureOpenAIClient azureclient = new(
+                     LLMendpoint,
+                     azureKeyCredential
+                  );
+
+
+                string InputDirective = $"""
+                    {MainDirective}
+
+                    {AdditionalDirective}
+
+                    {VacancyTextToReview}
+                    """;
+                // add a trycatch block here - LLM might not return a response so need to be careful!
+
+                ChatClient chatclient = azureclient.GetChatClient("gpt-4o");
+                //Console.WriteLine(chatclient);
+                ChatCompletion resp = chatclient.CompleteChat(
+                    [
+                        // System messages represent instructions or other guidance about how the assistant should behave
+                        new SystemChatMessage(SystemHeader),
+                            // User messages represent user input, whether historical or the most recent input
+                            new UserChatMessage(
+                                InputDirective
+                                )
+                        ]
+                 );
+
+                var outputstring = new string(resp.Content[0].Text);
+                LLMReturnResult llm_ReturnResult = new LLMReturnResult { llmresponse = outputstring, llm_error_flag = false };
+                return llm_ReturnResult;
+            }
+            catch(Exception ex)
+            {
+                string exmsg = ex.Message;
+                string extype = ex.GetType().Name;
+                LLMReturnResult llm_ReturnResult = new LLMReturnResult { llmresponse = "LANGUAGE MODEL API FAILED", llm_error_flag = true,exceptionmessage=exmsg,exceptiontype=extype };
+                return llm_ReturnResult;
+            }  
             
-
-            // ideally we want to read the JSON from a config, but this is hardcoded link to the relevant keys - we only need these keys.
-            // we need a secret to store these properly, but this is a second order problem.
-            var configuration = new ConfigurationBuilder().AddJsonFile("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\testdotnetproject\\local.settings.json", optional: false, reloadOnChange: true)
-            .Build();
-            string conn_key = configuration.GetSection("Values").GetValue<string>("VACANCYQA_LLM_KEY")?? "NO KEY DEFINED";
-            string conn_URL = configuration.GetSection("Values").GetValue<string>("VACANCYQA_LLM_ENDPOINT_SHORT")?? "NO URL DEFINED";
-
-            Uri LLMendpoint = new (conn_URL);
-            AzureKeyCredential azureKeyCredential = new (conn_key);
-            AzureOpenAIClient azureclient = new(
-                 LLMendpoint,
-                 azureKeyCredential
-              );
-
-            
-            string InputDirective = $"""
-                {MainDirective}
-
-                {AdditionalDirective}
-
-                {VacancyTextToReview}
-                """;
-            // add a trycatch block here - LLM might not return a response so need to be careful!
-
-            ChatClient chatclient = azureclient.GetChatClient("gpt-4o");
-            //Console.WriteLine(chatclient);
-            ChatCompletion resp = chatclient.CompleteChat(
-                [
-                    // System messages represent instructions or other guidance about how the assistant should behave
-                    new SystemChatMessage(SystemHeader),
-                        // User messages represent user input, whether historical or the most recent input
-                        new UserChatMessage(
-                            InputDirective
-                            )
-                    ]
-             );
-
-            var outputstring = new string(resp.Content[0].Text);
-
-            return outputstring;
         }
     }
 }
@@ -342,22 +360,22 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             
 
             Console.WriteLine("Discrimination check");
-            string llmoutputcheck_discrimination = qa.CallLLM(
+            LLMReturnResult llmoutputcheck_discrimination = qa.CallLLM(
                 llmprompt_discrim["SYSTEM_PROMPT"],
                 llmprompt_discrim["USER_HEADER"],
                 llmprompt_discrim["USER_INSTRUCTION"],
                 Vacancy_input.Vacancy_full??" "
                 );
             Console.WriteLine("Text Inconsistency/ Missing content check");
-            string llmoutputcheck_missingcontent = qa.CallLLM(
+            LLMReturnResult llmoutputcheck_missingcontent = qa.CallLLM(
                 llmprompt_missingcontent["SYSTEM_PROMPT"],
                 llmprompt_missingcontent["USER_HEADER"],
                 llmprompt_missingcontent["USER_INSTRUCTION"],
-                Vacancy_input.Vacancy_full??""
+                Vacancy_input.Vacancy_full??" "
             );
 
-            bool status_code_discrim = qa.FlagifyLLMResponse(llmoutputcheck_discrimination, false, false);
-            bool status_code_missingcontent = qa.FlagifyLLMResponse(llmoutputcheck_missingcontent, true, false);
+            bool status_code_discrim = qa.FlagifyLLMResponse(llmoutputcheck_discrimination.llmresponse, false, false);
+            bool status_code_missingcontent = qa.FlagifyLLMResponse(llmoutputcheck_missingcontent.llmresponse, true, false);
 
             Console.WriteLine(string.Format("DISCRIMINATION CHECK RESULT: {0}", [status_code_discrim]));
             if (status_code_discrim) {
@@ -371,8 +389,8 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 
             //now we've got the codes, lets collect them in an object.
 
-            AICheckOutput discrimcheck = new(status_code_discrim, llmoutputcheck_discrimination, "DiscriminationCheck");
-            AICheckOutput textinconsistencycheck = new(status_code_missingcontent, llmoutputcheck_missingcontent, "TextInconsistencyCheck");
+            AICheckOutput discrimcheck = new(status_code_discrim, llmoutputcheck_discrimination.llmresponse, "DiscriminationCheck");
+            AICheckOutput textinconsistencycheck = new(status_code_missingcontent, llmoutputcheck_missingcontent.llmresponse, "TextInconsistencyCheck");
             List<AICheckOutput> aichecks_shortlist = [discrimcheck, textinconsistencycheck];
 
             // Spelling & Grammar check(s)
@@ -401,18 +419,18 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                     Console.WriteLine("SPELLING GRAMMAR CHECK FOR ");
                     Console.WriteLine(key);
                     
-                    string llmoutputcheck_spelling = qa.CallLLM(
+                    LLMReturnResult llmoutputcheck_spelling = qa.CallLLM(
                     llmprompt_spellingcheck["SYSTEM_PROMPT"],
                     llmprompt_spellingcheck["USER_HEADER"],
                     llmprompt_spellingcheck["USER_INSTRUCTION"],
                     spagcheckdict[key]
                     );
-                    bool status_code_spellinggramar_1 = qa.FlagifyLLMResponse(llmoutputcheck_spelling, false, true);
+                    bool status_code_spellinggramar_1 = qa.FlagifyLLMResponse(llmoutputcheck_spelling.llmresponse, false, true);
                     Console.WriteLine($"Spelling check Failure result for : {key} = {status_code_spellinggramar_1}");
                     if (status_code_spellinggramar_1) {
                         Console.WriteLine($"Detailed Result : {llmoutputcheck_spelling} \n");
                     }
-                    AICheckOutput spag_check = new(status_code_spellinggramar_1,llmoutputcheck_spelling,$"Spelling Check {key}");
+                    AICheckOutput spag_check = new(status_code_spellinggramar_1,llmoutputcheck_spelling.llmresponse,$"Spelling Check {key}");
                     spellingChecks.Checks.Add(spag_check);                
             }
 
@@ -440,6 +458,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                 TrafficLightScore = traf
                 ,
                 RecommendReview = alloc_review
+                
             };
 
             Console.WriteLine(ReturnObject);
