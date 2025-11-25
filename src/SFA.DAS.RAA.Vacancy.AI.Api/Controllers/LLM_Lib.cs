@@ -4,6 +4,7 @@ using OpenAI.Chat;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Connections.Features;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 {
@@ -19,7 +20,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
         public string Name { get; set; } = "";
         public string LLM_output { get; set; } = "";
     }
-
+    
     class SpellingChecks
     {
         public SpellingChecks() { }// class constructor
@@ -41,22 +42,28 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 
     }
 
-    public class  LLMReturnResult {
+    public class ErrorReturnObject
+    {
+        public string errormsg { get; set; } = "None";
+        public string check { get; set; } = "N/A";
+    }
+    public class LLMReturnResult {
         public string llmresponse { get; set; } = "";
-        public bool llm_error_flag { get; set; }=false;
-        public string exceptionmessage { get; set; } = "";
-        public string exceptiontype { get; set; } = "";
+        public bool llm_error_flag { get; set; } = false;
+        public ErrorReturnObject errorobj { get; set; }
     }
 
-    class AICheckReturnResultObject
+    public class AICheckReturnResultObject
     {
         public string? VacancyID { get; set; } = "";
         public List<AICheckOutput>? AICheckOutput { get; set; } = [];
         public List<AICheckOutput>? DebugAICheckOutput { get; set; } = [];
         public TrafficLight? TrafficLightScore { get; set; } = new(-1);
+        
         public bool? RecommendReview { get; set; } = false;
+        public List<ErrorReturnObject> Errors { get; set; } = []; // should be almost always empty, sort out what happens if it does error.
     }
-
+    
     public class InputObject
     {
         public string? VacancyId { get; set; } = "";
@@ -276,6 +283,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             , string MainDirective = "Please assess the following vacancy for spelling / grammar errors, returning YES and explaining answers if you find any, or NO if you do not."
             , string AdditionalDirective = "Please review the following document:"
             , string VacancyTextToReview = "This is not a real apprenticeship vacancy for review"
+            , string checkname = "Discrimination"
             )
         {
             //function to Run the LLM code given a specific user directive
@@ -320,14 +328,16 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                  );
 
                 var outputstring = new string(resp.Content[0].Text);
-                LLMReturnResult llm_ReturnResult = new LLMReturnResult { llmresponse = outputstring, llm_error_flag = false };
+                ErrorReturnObject err = new ErrorReturnObject { check = "", errormsg = "" };
+                LLMReturnResult llm_ReturnResult = new LLMReturnResult { llmresponse = outputstring, llm_error_flag = false,errorobj=err };
                 return llm_ReturnResult;
             }
             catch(Exception ex)
             {
                 string exmsg = ex.Message;
                 string extype = ex.GetType().Name;
-                LLMReturnResult llm_ReturnResult = new LLMReturnResult { llmresponse = "LANGUAGE MODEL API FAILED", llm_error_flag = true,exceptionmessage=exmsg,exceptiontype=extype };
+                ErrorReturnObject err = new ErrorReturnObject { check = checkname, errormsg = exmsg };
+                LLMReturnResult llm_ReturnResult = new LLMReturnResult { llmresponse = "LANGUAGE MODEL API FAILED", llm_error_flag = true,errorobj=err };
                 return llm_ReturnResult;
             }  
             
@@ -357,22 +367,34 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             Dictionary<string, string> llmprompt_discrim = qa.GetPrompts("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_V0_D1.json");
             Dictionary<string, string> llmprompt_missingcontent = qa.GetPrompts("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_TextConsistency.json");
             Dictionary<string, string> llmprompt_spellingcheck = qa.GetPrompts("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_SpellingAndGrammar.json");
-            
 
+            List<ErrorReturnObject> llmerrors = []; // start off with 0 LLM errors, and catch each as we go along.
+            
             Console.WriteLine("Discrimination check");
             LLMReturnResult llmoutputcheck_discrimination = qa.CallLLM(
                 llmprompt_discrim["SYSTEM_PROMPT"],
                 llmprompt_discrim["USER_HEADER"],
                 llmprompt_discrim["USER_INSTRUCTION"],
-                Vacancy_input.Vacancy_full??" "
+                Vacancy_input.Vacancy_full??" ",
+                "DiscriminationCheck"
                 );
+            if (llmoutputcheck_discrimination.llm_error_flag) {
+                llmerrors.Add(llmoutputcheck_discrimination.errorobj);
+            }
+
             Console.WriteLine("Text Inconsistency/ Missing content check");
             LLMReturnResult llmoutputcheck_missingcontent = qa.CallLLM(
                 llmprompt_missingcontent["SYSTEM_PROMPT"],
                 llmprompt_missingcontent["USER_HEADER"],
                 llmprompt_missingcontent["USER_INSTRUCTION"],
                 Vacancy_input.Vacancy_full??" "
+                , "TextInconsistencyCheck"
             );
+            if (llmoutputcheck_missingcontent.llm_error_flag)
+            {
+                llmerrors.Add(llmoutputcheck_missingcontent.errorobj);
+            }
+
 
             bool status_code_discrim = qa.FlagifyLLMResponse(llmoutputcheck_discrimination.llmresponse, false, false);
             bool status_code_missingcontent = qa.FlagifyLLMResponse(llmoutputcheck_missingcontent.llmresponse, true, false);
@@ -423,8 +445,12 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                     llmprompt_spellingcheck["SYSTEM_PROMPT"],
                     llmprompt_spellingcheck["USER_HEADER"],
                     llmprompt_spellingcheck["USER_INSTRUCTION"],
-                    spagcheckdict[key]
+                    spagcheckdict[key],
+                     $"Spelling Check {key}"
                     );
+                if (llmoutputcheck_spelling.llm_error_flag) {
+                    llmerrors.Add(llmoutputcheck_spelling.errorobj);
+                    }
                     bool status_code_spellinggramar_1 = qa.FlagifyLLMResponse(llmoutputcheck_spelling.llmresponse, false, true);
                     Console.WriteLine($"Spelling check Failure result for : {key} = {status_code_spellinggramar_1}");
                     if (status_code_spellinggramar_1) {
@@ -457,7 +483,8 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                 ,
                 TrafficLightScore = traf
                 ,
-                RecommendReview = alloc_review
+                RecommendReview = alloc_review,
+                Errors=llmerrors
                 
             };
 
