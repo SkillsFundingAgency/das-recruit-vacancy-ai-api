@@ -42,9 +42,9 @@ internal class Startup
         
         Console.WriteLine(configuration["ConfigurationStorageConnectionString"]);        
 
-    //#if DEBUG
+    #if DEBUG
         config.AddJsonFile("appsettings.Development.json", true);
-    //#endif
+    #endif
         Configuration = config.Build();
     }
 

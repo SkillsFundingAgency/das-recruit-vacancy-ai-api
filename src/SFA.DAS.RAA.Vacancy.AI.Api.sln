@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFA.DAS.RAA.Vacancy.AI.Api"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{F02C1A74-FB0E-4DBC-9D67-A8D538BCC455}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFA.DAS.RAA.Vacancy.AI.Api.UnitTests", "SFA.DAS.RAA.Vacancy.AI.Api.UnitTests\SFA.DAS.RAA.Vacancy.AI.Api.UnitTests.csproj", "{F02C1A74-FB0E-4DBC-9D67-A8D538BCC455}"
 	ProjectSection(ProjectDependencies) = postProject
 		{074EAFEF-ADF6-4A3A-9FF9-ADA04F222829} = {074EAFEF-ADF6-4A3A-9FF9-ADA04F222829}
 	EndProjectSection
@@ -32,5 +32,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {86308C55-4F65-465F-8F9A-98742131E58A}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F02C1A74-FB0E-4DBC-9D67-A8D538BCC455} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 EndGlobal

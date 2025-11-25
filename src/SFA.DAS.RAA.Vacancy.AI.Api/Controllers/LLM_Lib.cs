@@ -1,10 +1,8 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
 using OpenAI.Chat;
-using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.AspNetCore.Connections.Features;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 {

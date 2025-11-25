@@ -1,6 +1,6 @@
 using SFA.DAS.RAA.Vacancy.AI.Api.Controllers;
 
-namespace UnitTests
+namespace SFA.DAS.RAA.Vacancy.AI.Api.UnitTests
 {
     public class Tests
     {
