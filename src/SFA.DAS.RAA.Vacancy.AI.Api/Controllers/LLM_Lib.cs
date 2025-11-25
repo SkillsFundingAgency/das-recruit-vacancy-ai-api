@@ -1,10 +1,12 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
-using OpenAI.Chat;
-using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Connections.Features;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using OpenAI.Chat;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 {
@@ -210,7 +212,12 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
     public class VacancyQA
     {
         // class def for logging
-
+        private readonly ILogger _logger;
+        public VacancyQA() {
+            using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
+            ILogger logger = factory.CreateLogger("VacancyQA");
+            _logger = logger;
+        }
     
 
         public Dictionary<string, string> GetPrompts(string inputpath = "C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_V0_D1.json")
@@ -350,19 +357,25 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 {
     class LLMExec
     {
-        public LLMExec() { } // class constructor - doesn't do anything
+        public readonly ILogger _logger;
+        public LLMExec() {
+            using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
+            ILogger logger = factory.CreateLogger("LLMExec");
+            _logger = logger;        
+        
+        } // class constructor - doesn't do anything
         public string ExecLLM(InputObject Vacancy_input) // simple LLM output returns a battery of tests
         {
             //apply method to get the vacancy from the spec
             Vacancy_input.Create_VacancyText();
           
          
-            Console.WriteLine(Vacancy_input.ToString());
+            _logger.LogDebug(Vacancy_input.ToString());
             
 
             
             //call class constructor for the VacancyQA class - call it without a logger method being passed in
-            Console.WriteLine("Now running LLM code");
+            _logger.LogInformation("Now running LLM code");
             VacancyQA qa = new();
             Dictionary<string, string> llmprompt_discrim = qa.GetPrompts("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_V0_D1.json");
             Dictionary<string, string> llmprompt_missingcontent = qa.GetPrompts("C:\\Users\\manthony2\\OneDrive - Department for Education\\Documents\\GitHub\\AIVacancyQualityAssurance\\data\\PromptTemplate_TextConsistency.json");
@@ -370,7 +383,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 
             List<ErrorReturnObject> llmerrors = []; // start off with 0 LLM errors, and catch each as we go along.
             
-            Console.WriteLine("Discrimination check");
+            _logger.LogInformation("Discrimination check");
             LLMReturnResult llmoutputcheck_discrimination = qa.CallLLM(
                 llmprompt_discrim["SYSTEM_PROMPT"],
                 llmprompt_discrim["USER_HEADER"],
@@ -379,10 +392,11 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                 "DiscriminationCheck"
                 );
             if (llmoutputcheck_discrimination.llm_error_flag) {
+                _logger.LogError($"LLM Fails discrimination check with {llmoutputcheck_discrimination.errorobj.errormsg}");
                 llmerrors.Add(llmoutputcheck_discrimination.errorobj);
             }
 
-            Console.WriteLine("Text Inconsistency/ Missing content check");
+            _logger.LogInformation("Text Inconsistency/ Missing content check");
             LLMReturnResult llmoutputcheck_missingcontent = qa.CallLLM(
                 llmprompt_missingcontent["SYSTEM_PROMPT"],
                 llmprompt_missingcontent["USER_HEADER"],
@@ -392,6 +406,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             );
             if (llmoutputcheck_missingcontent.llm_error_flag)
             {
+                _logger.LogError($"LLM Fails text inconsistency check with {llmoutputcheck_missingcontent.errorobj.errormsg}");
                 llmerrors.Add(llmoutputcheck_missingcontent.errorobj);
             }
 
@@ -399,14 +414,14 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             bool status_code_discrim = qa.FlagifyLLMResponse(llmoutputcheck_discrimination.llmresponse, false, false);
             bool status_code_missingcontent = qa.FlagifyLLMResponse(llmoutputcheck_missingcontent.llmresponse, true, false);
 
-            Console.WriteLine(string.Format("DISCRIMINATION CHECK RESULT: {0}", [status_code_discrim]));
+            _logger.LogInformation(string.Format("DISCRIMINATION CHECK RESULT: {0}", [status_code_discrim]));
             if (status_code_discrim) {
-                Console.WriteLine(string.Format("DETAIL: {0} \n\n\n\n", [llmoutputcheck_discrimination]));
+                _logger.LogDebug(string.Format("DETAIL: {0} \n\n\n\n", [llmoutputcheck_discrimination]));
             }
-            Console.WriteLine(string.Format("TEXT INCONSISTENCY CHECK RESULT: {0}", [status_code_missingcontent]));
+            _logger.LogInformation(string.Format("TEXT INCONSISTENCY CHECK RESULT: {0}", [status_code_missingcontent]));
             if (status_code_missingcontent)
             {
-                Console.WriteLine(string.Format("DETAIL: {0} \n\n\n\n", [llmoutputcheck_missingcontent]));
+                _logger.LogDebug(string.Format("DETAIL: {0} \n\n\n\n", [llmoutputcheck_missingcontent]));
             }
 
             //now we've got the codes, lets collect them in an object.
@@ -416,7 +431,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
             List<AICheckOutput> aichecks_shortlist = [discrimcheck, textinconsistencycheck];
 
             // Spelling & Grammar check(s)
-            Console.WriteLine("Spelling & Grammar check");
+            _logger.LogInformation("Spelling & Grammar check");
             
 
             //create set of spelling check
@@ -438,8 +453,8 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
 
 
             foreach (string key in listofkeys) {                
-                    Console.WriteLine("SPELLING GRAMMAR CHECK FOR ");
-                    Console.WriteLine(key);
+                    _logger.LogInformation($"SPELLING GRAMMAR CHECK FOR {key}");
+                    
                     
                     LLMReturnResult llmoutputcheck_spelling = qa.CallLLM(
                     llmprompt_spellingcheck["SYSTEM_PROMPT"],
@@ -448,13 +463,14 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                     spagcheckdict[key],
                      $"Spelling Check {key}"
                     );
-                if (llmoutputcheck_spelling.llm_error_flag) {
-                    llmerrors.Add(llmoutputcheck_spelling.errorobj);
+                    if (llmoutputcheck_spelling.llm_error_flag) {
+                        _logger.LogError($"Spelling Check {key} throws error: {llmoutputcheck_spelling.errorobj.errormsg}");
+                        llmerrors.Add(llmoutputcheck_spelling.errorobj);
                     }
                     bool status_code_spellinggramar_1 = qa.FlagifyLLMResponse(llmoutputcheck_spelling.llmresponse, false, true);
-                    Console.WriteLine($"Spelling check Failure result for : {key} = {status_code_spellinggramar_1}");
+                    _logger.LogInformation($"Spelling check Failure result for : {key} = {status_code_spellinggramar_1}");
                     if (status_code_spellinggramar_1) {
-                        Console.WriteLine($"Detailed Result : {llmoutputcheck_spelling} \n");
+                        _logger.LogDebug($"Detailed Result : {llmoutputcheck_spelling} \n");
                     }
                     AICheckOutput spag_check = new(status_code_spellinggramar_1,llmoutputcheck_spelling.llmresponse,$"Spelling Check {key}");
                     spellingChecks.Checks.Add(spag_check);                
@@ -488,10 +504,10 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                 
             };
 
-            Console.WriteLine(ReturnObject);
+            
             JsonSerializerOptions jopts= new JsonSerializerOptions { WriteIndented = true };
             string jsonstring = JsonSerializer.Serialize(ReturnObject,jopts);
-            Console.WriteLine(jsonstring);
+            _logger.LogDebug(jsonstring);
             return jsonstring;
         }
 
