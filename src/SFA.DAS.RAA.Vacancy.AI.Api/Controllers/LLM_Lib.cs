@@ -337,12 +337,15 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers
                 var outputstring = new string(resp.Content[0].Text);
                 ErrorReturnObject err = new ErrorReturnObject { check = "", errormsg = "" };
                 LLMReturnResult llm_ReturnResult = new LLMReturnResult { llmresponse = outputstring, llm_error_flag = false,errorobj=err };
+                _logger.LogDebug($"LLM returned response OK for check {checkname}");
                 return llm_ReturnResult;
             }
             catch(Exception ex)
             {
                 string exmsg = ex.Message;
                 string extype = ex.GetType().Name;
+                _logger.LogError($"LLM returned error for check {checkname}");
+                _logger.LogError(exmsg);
                 ErrorReturnObject err = new ErrorReturnObject { check = checkname, errormsg = exmsg };
                 LLMReturnResult llm_ReturnResult = new LLMReturnResult { llmresponse = "LANGUAGE MODEL API FAILED", llm_error_flag = true,errorobj=err };
                 return llm_ReturnResult;
