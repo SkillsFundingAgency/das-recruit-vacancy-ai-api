@@ -2,8 +2,8 @@ using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services;
 
-public class PrioritisationSystem {
-        
+public class PrioritisationSystem 
+{
     public TrafficLight TrafficLightAssignment(List<AICheckOutput> checklist) 
     { 
         foreach (var check in checklist)

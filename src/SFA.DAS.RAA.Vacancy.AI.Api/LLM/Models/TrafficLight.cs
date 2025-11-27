@@ -1,6 +1,7 @@
 namespace SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
 
-public class TrafficLight {
+public class TrafficLight 
+{
     public int TrafficLightRatingSystemEnum { get; set; } = 0;
     public string TrafficLightRatingSystemDescription { get; set; } = "Green";
 
@@ -16,5 +17,4 @@ public class TrafficLight {
             _ => "Not Defined +"
         };
     }
-
-}
+} //TODO this look and feels like it should just be an enum

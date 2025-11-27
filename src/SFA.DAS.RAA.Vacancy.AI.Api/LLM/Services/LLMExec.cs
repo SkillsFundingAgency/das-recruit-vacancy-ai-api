@@ -66,12 +66,12 @@ public class LLMExec(IVacancyQA qa, IOptions<VacancyAiConfiguration> configurati
     }
 
     private async Task GetCheckLlmResult(string? input,
-        ConcurrentBag<ErrorReturnObject> llmerrors, ConcurrentBag<AICheckOutput> aichecksShortlist, string checkName, Prompts prompts)
+        ConcurrentBag<ErrorReturnObject> llmerrors, ConcurrentBag<AICheckOutput> aichecksShortlist, string checkName, Prompt prompt)
     {
         var llmOutput = await qa.CallLLM(
-            prompts.SystemPrompt,
-            prompts.UserHeader,
-            prompts.UserInstruction,
+            prompt.SystemPrompt,
+            prompt.UserHeader,
+            prompt.UserInstruction,
             input ?? " ",
             checkName
         );

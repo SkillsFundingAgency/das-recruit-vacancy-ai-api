@@ -1,5 +1,3 @@
-using SFA.DAS.RAA.Vacancy.AI.Api.Controllers;
-
 namespace SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
 
 public class AICheckReturnResultObject

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Options;
 using SFA.DAS.Api.Common.Configuration;
 using System.Diagnostics.CodeAnalysis;
 using SFA.DAS.RAA.Vacancy.AI.Api.Configuration;
-using SFA.DAS.RAA.Vacancy.AI.Api.Controllers;
 using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.AppStart;
