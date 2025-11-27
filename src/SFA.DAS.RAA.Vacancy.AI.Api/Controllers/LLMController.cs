@@ -1,21 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
+using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services;
 
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[ProducesResponseType<AICheckReturnResultObject>(StatusCodes.Status200OK)]
-public class LlmController : ControllerBase
+public class LlmController(ILLMExec llm) : ControllerBase
 {
     [HttpPost(Name = "RunLLM")]
-    public IActionResult RunLLM([FromBody] InputObject inputvacancy)
+    [ProducesResponseType<AICheckReturnResultObject>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> RunLLM([FromBody] InputObject inputvacancy)
     {
-        
-        Console.WriteLine(inputvacancy);
-        Console.WriteLine("Title: " + inputvacancy.Title);
-        LLMExec llmcode = new(); // call class constructor to llmexec
-        string llmoutput=llmcode.ExecLLM(inputvacancy);
+        var llmoutput= await llm.ExecLLM(inputvacancy);
         return Ok(llmoutput);
     }
 
