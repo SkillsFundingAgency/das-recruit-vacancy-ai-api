@@ -8,7 +8,6 @@ public class ReviewAllocator
     private const double ProbGreen = 0.01F;
     public bool Allocator(TrafficLight traf) 
     {
-            
         if (traf.TrafficLightRatingSystemEnum is <= 0 or > 3) 
         {
             return true; // always review - should never happen

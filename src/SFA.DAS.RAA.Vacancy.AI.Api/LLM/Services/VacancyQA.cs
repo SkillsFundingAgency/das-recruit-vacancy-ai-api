@@ -67,7 +67,7 @@ public class VacancyQA(ILogger<VacancyQA> logger, IOptions<VacancyAiConfiguratio
         }
         catch(Exception ex)
         {
-            logger.LogError(ex, $"LLM returned error for check {checkname}");
+            logger.LogError(ex, "LLM returned error for check {checkname}",checkname);
             return new LLMReturnResult { LLMResponse = "LANGUAGE MODEL API FAILED", LLMErrorFlag = true,Error=new ErrorReturnObject { Check = checkname, Errormsg = ex.Message } };
         }
     }
