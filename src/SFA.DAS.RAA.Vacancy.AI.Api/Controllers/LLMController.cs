@@ -16,5 +16,4 @@ public class LlmController(ILLMExec llm) : ControllerBase
         var llmoutput= await llm.ExecLLM(inputvacancy);
         return Ok(llmoutput);
     }
-
 }
