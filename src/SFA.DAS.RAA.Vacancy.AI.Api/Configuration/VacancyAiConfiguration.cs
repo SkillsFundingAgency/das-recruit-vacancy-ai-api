@@ -2,6 +2,9 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Configuration;
 
 public class VacancyAiConfiguration
 {
+    public string QueueKey { get; set; }
+    public string QueueName { get; set; }
+
     public string LlmKey { get; set; }
     public string LlmEndpointShort { get; set; }
     public Prompt DiscriminationPrompt { get; set; }
