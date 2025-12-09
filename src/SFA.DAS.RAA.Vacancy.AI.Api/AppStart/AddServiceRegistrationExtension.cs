@@ -31,7 +31,16 @@ public static class AddServiceRegistrationExtension
         services.AddOptions();
         services.Configure<AzureActiveDirectoryConfiguration>(configuration.GetSection("AzureAd"));
         services.AddSingleton(cfg => cfg.GetService<IOptions<AzureActiveDirectoryConfiguration>>()!.Value);
-        services.Configure<VacancyAiConfiguration>(configuration.GetSection(nameof(VacancyAiConfiguration)));
+        services.Configure<VacancyAiConfiguration>(config =>
+        {
+            var mainConfig = configuration.GetSection(nameof(VacancyAiConfiguration)).Get<VacancyAiConfiguration>();
+
+            config.LlmKey = mainConfig!.LlmKey;
+            config.LlmEndpointShort = mainConfig.LlmEndpointShort;
+            config.DiscriminationPrompt = configuration.GetSection("DiscriminationPrompt").Get<Prompt>()!;
+            config.MissingContentPrompt = configuration.GetSection("MissingContentPrompt").Get<Prompt>()!;
+            config.SpellingCheckPrompt = configuration.GetSection("SpellingCheckPrompt").Get<Prompt>()!;
+        });
         services.AddSingleton(cfg => cfg.GetService<IOptions<VacancyAiConfiguration>>()!.Value);
     }
 }
