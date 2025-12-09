@@ -3,17 +3,16 @@ using Microsoft.AspNetCore.Mvc;
 
 using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services;
 using System.Threading.Tasks;
-
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
-public class QueueController(IQueueHandlerSimple Handler) : ControllerBase
+public class QueueReaderController(IQueueReader Reader) : ControllerBase
 {
-    [HttpPost(Name = "AddSimpleMessageToQueue")]
+    [HttpPost(Name = "ReadQueue")]
     [ProducesResponseType<string>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> ReadMessageFromQueue([FromBody] string simplemessage)
+    public async Task<IActionResult> ReadQueue([FromBody] string simplemessage)
     {
-        await Handler.AddMessageAsync(simplemessage);
-        return Ok("eue");
+        await Reader.ReadMessages();
+        return Ok("Message retrieved from Queue");
     }
 }

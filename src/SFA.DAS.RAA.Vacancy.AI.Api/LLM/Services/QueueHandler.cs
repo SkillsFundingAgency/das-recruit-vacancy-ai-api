@@ -10,7 +10,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services
 	public interface IQueueHandlerSimple
 	{
 		public async Task AddMessageAsync(string msg)
-		{
+		{			
 		}
 	}
 
