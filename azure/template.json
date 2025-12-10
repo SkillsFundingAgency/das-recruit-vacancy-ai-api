@@ -69,7 +69,7 @@
     "resourceGroupName": "[concat(variables('resourceNamePrefix'), '-rg')]",
     "appServiceName": "[concat(variables('resourceNamePrefix'), '-as')]",
     "privateLinkScopeName": "[toLower(concat('das-', parameters('resourceEnvironmentName'),'-shared-ampls'))]",
-    "configNames": "SFA.DAS.Vacancy.AI.Api"
+    "configNames": "SFA.DAS.Vacancy.AI.Api_1.0"
   },
   "resources": [
     {
