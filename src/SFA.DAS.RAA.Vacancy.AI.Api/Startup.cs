@@ -42,6 +42,7 @@ internal class Startup
         
     #if DEBUG
         config.AddJsonFile("appsettings.Development.json", true);
+        config.AddJsonFile("appsettings.json", true);
     #endif
         Configuration = config.Build();
     }
