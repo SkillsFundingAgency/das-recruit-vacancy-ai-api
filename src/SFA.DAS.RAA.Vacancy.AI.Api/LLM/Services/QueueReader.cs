@@ -26,8 +26,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services
 			var config = configuration.Value;
 
 			Console.WriteLine("QUEUE CONNECTION STRING");
-			Console.WriteLine(config.QueueKey);
-			Console.WriteLine(config.QueueName);
+		
 
 			var client = new QueueClient(config.QueueKey, config.QueueName);
 			QueueMessage[] messages = await client.ReceiveMessagesAsync(maxMessages: 10);

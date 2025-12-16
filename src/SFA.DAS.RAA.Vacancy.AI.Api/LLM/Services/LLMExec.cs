@@ -31,13 +31,13 @@ public class LLMExec(IVacancyQA qa, IOptions<VacancyAiConfiguration> configurati
         var aichecks_shortlist = new ConcurrentBag<AICheckOutput>();
 
         await Task.WhenAll(
-        GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "DiscriminationCheck",config.DiscriminationPrompt),
-        GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "TextInconsistencyCheck",config.MissingContentPrompt));
+        GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "DiscriminationCheck",config.DiscriminationPrompt, config.Temperature_discrimination),
+        GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "TextInconsistencyCheck",config.MissingContentPrompt, config.Temperature_missingcontent));
 
 
         var spellingAndGrammarChecks = new ConcurrentBag<AICheckOutput>();
         var tasks = spellingAndGrammarInputCheck
-            .Select(key => GetCheckLlmResult(key.Value, llmerrors, spellingAndGrammarChecks, $"Spelling Check {key.Key}", config.SpellingCheckPrompt))
+            .Select(key => GetCheckLlmResult(key.Value, llmerrors, spellingAndGrammarChecks, $"Spelling Check {key.Key}", config.SpellingCheckPrompt, config.Temperature_spellcheck))
             .ToList();
         
         await Task.WhenAll(tasks);
@@ -66,14 +66,15 @@ public class LLMExec(IVacancyQA qa, IOptions<VacancyAiConfiguration> configurati
     }
 
     private async Task GetCheckLlmResult(string? input,
-        ConcurrentBag<ErrorReturnObject> llmerrors, ConcurrentBag<AICheckOutput> aichecksShortlist, string checkName, Prompt prompt)
+        ConcurrentBag<ErrorReturnObject> llmerrors, ConcurrentBag<AICheckOutput> aichecksShortlist, string checkName, Prompt prompt,float temperature)
     {
         var llmOutput = await qa.CallLLM(
             prompt.SystemPrompt,
             prompt.UserHeader,
             prompt.UserInstruction,
             input ?? " ",
-            checkName
+            checkName,
+            temperature
         );
 
         if (llmOutput.LLMErrorFlag) {
