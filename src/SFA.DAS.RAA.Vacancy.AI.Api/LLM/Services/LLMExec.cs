@@ -1,7 +1,10 @@
-using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NUnit.Framework.Internal;
 using SFA.DAS.RAA.Vacancy.AI.Api.Configuration;
 using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services;
 
@@ -9,16 +12,18 @@ public interface ILLMExec
 {
     Task<AICheckReturnResultObject> ExecLLM(InputObject vacancyInput);
 }
-public class LLMExec(IVacancyQA qa, IOptions<VacancyAiConfiguration> configuration) : ILLMExec
+public class LLMExec(ILogger<LLMExec> logger,IVacancyQA qa, IOptions<VacancyAiConfiguration> configuration) : ILLMExec
 {
-        
     public async Task<AICheckReturnResultObject> ExecLLM(InputObject vacancyInput) // simple LLM output returns a battery of tests
     {
+        
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
         var spellingAndGrammarInputCheck=new Dictionary<string, string>
         {
             { "Description", vacancyInput.Description ?? "=" },
             { "ShortDescription", vacancyInput.ShortDescription ?? "" },
-            { "Qualifications", vacancyInput.Qualifications??"-" },
+            { "Qualifications", vacancyInput.Qualifications??"-" },x
             { "Skills", vacancyInput.Skills??"-" },
             { "Title", vacancyInput.Title??"-" },
             { "EmployerDescription", vacancyInput.EmployerDescription??"-" },
@@ -53,7 +58,11 @@ public class LLMExec(IVacancyQA qa, IOptions<VacancyAiConfiguration> configurati
         // initialize the traffic light system & Allocation system
         var prioritisationSystem = new PrioritisationSystem();
         var reviewAllocator = new ReviewAllocator();
+        
+        sw.Stop();
 
+        float process_runtime = sw.ElapsedMilliseconds / 1000.0F; // convert time to seconds
+        logger.LogDebug("Full LLM checks(s) processed in " + process_runtime.ToString() + " seconds");
         return new AICheckReturnResultObject
         {
             DebugAICheckOutput = aichecks_shortlist.Concat(spellingChecks.Checks).ToList(),
@@ -61,8 +70,10 @@ public class LLMExec(IVacancyQA qa, IOptions<VacancyAiConfiguration> configurati
             VacancyID = vacancyInput.VacancyId ?? "-",
             TrafficLightScore = prioritisationSystem.TrafficLightAssignment(aichecks_shortlist.ToList()),
             RecommendReview = reviewAllocator.Allocator(prioritisationSystem.TrafficLightAssignment(aichecks_shortlist.ToList())),
-            Errors=llmerrors.ToList()
+            Errors = llmerrors.ToList(),
+            Job_Runtime = process_runtime
         };
+        
     }
 
     private async Task GetCheckLlmResult(string? input,
@@ -80,6 +91,6 @@ public class LLMExec(IVacancyQA qa, IOptions<VacancyAiConfiguration> configurati
         if (llmOutput.LLMErrorFlag) {
             llmerrors.Add(llmOutput.Error);
         }
-        aichecksShortlist.Add(new AICheckOutput(qa.FlagifyLLMResponse(llmOutput.LLMResponse, false, false), llmOutput.LLMResponse, checkName));
+        aichecksShortlist.Add(new AICheckOutput(qa.FlagifyLLMResponse(llmOutput.LLMResponse, false, false), llmOutput.LLMResponse, checkName,llmOutput.CheckRuntime));
     }
 }
