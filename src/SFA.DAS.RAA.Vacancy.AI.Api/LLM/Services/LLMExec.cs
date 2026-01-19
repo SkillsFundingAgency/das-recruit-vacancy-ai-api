@@ -23,7 +23,7 @@ public class LLMExec(ILogger<LLMExec> logger,IVacancyQA qa, IOptions<VacancyAiCo
         {
             { "Description", vacancyInput.Description ?? "=" },
             { "ShortDescription", vacancyInput.ShortDescription ?? "" },
-            { "Qualifications", vacancyInput.Qualifications??"-" },x
+            { "Qualifications", vacancyInput.Qualifications??"-" },
             { "Skills", vacancyInput.Skills??"-" },
             { "Title", vacancyInput.Title??"-" },
             { "EmployerDescription", vacancyInput.EmployerDescription??"-" },
@@ -63,6 +63,18 @@ public class LLMExec(ILogger<LLMExec> logger,IVacancyQA qa, IOptions<VacancyAiCo
 
         float process_runtime = sw.ElapsedMilliseconds / 1000.0F; // convert time to seconds
         logger.LogDebug("Full LLM checks(s) processed in " + process_runtime.ToString() + " seconds");
+        TrafficLight trafdbg = prioritisationSystem.TrafficLightAssignment(aichecks_shortlist.ToList());
+   
+        bool reqreview = reviewAllocator.Allocator(prioritisationSystem.TrafficLightAssignment(aichecks_shortlist.ToList()));
+
+        List<AICheckOutput> checklist_dbg=aichecks_shortlist.Concat(spellingChecks.Checks).ToList();
+        foreach (AICheckOutput dbg_chk in checklist_dbg) {            
+            logger.LogDebug("LLM DEBUG {name}, Value: {value}",dbg_chk.Name, dbg_chk.Value);
+            logger.LogDebug("LLM DEBUG {name}, LLM Output: {value}",dbg_chk.Name, dbg_chk.LLMOutput);
+        }
+        logger.LogDebug("Traffic light assignment: " + trafdbg.TrafficLightRatingSystemDescription.ToString());
+        logger.LogDebug("Recommend review?: " + reqreview.ToString());
+        
         return new AICheckReturnResultObject
         {
             DebugAICheckOutput = aichecks_shortlist.Concat(spellingChecks.Checks).ToList(),
