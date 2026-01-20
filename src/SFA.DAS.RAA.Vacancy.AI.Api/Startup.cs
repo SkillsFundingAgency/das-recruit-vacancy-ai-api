@@ -42,14 +42,14 @@ internal class Startup
         
     #if DEBUG
         config.AddJsonFile("appsettings.Development.json", true);
+        config.AddJsonFile("appsettings.json", true);
     #endif
         Configuration = config.Build();
     }
 
     private bool IsEnvironmentLocalOrDev =>
         _environmentName.Equals("LOCAL", StringComparison.CurrentCultureIgnoreCase)
-        || _environmentName.Equals("DEV", StringComparison.CurrentCultureIgnoreCase)
-        || _environmentName.Equals("TEST", StringComparison.CurrentCultureIgnoreCase);
+        || _environmentName.Equals("DEV", StringComparison.CurrentCultureIgnoreCase);
 
     public void ConfigureServices(IServiceCollection services)
     {
