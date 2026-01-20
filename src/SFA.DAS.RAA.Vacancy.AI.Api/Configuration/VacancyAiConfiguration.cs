@@ -9,9 +9,9 @@ public class VacancyAiConfiguration
     public Prompt MissingContentPrompt { get; set; }
     public Prompt SpellingCheckPrompt { get; set; }
 
-    public float Temperature_spellcheck { get; set; } = 1.0F;
-    public float Temperature_missingcontent { get; set; } = 1.0F;
-    public float Temperature_discrimination { get; set; } = 1.0F;
+    public float Temperature_SpellCheck { get; set; } = 1.0F;
+    public float Temperature_MissingContent { get; set; } = 1.0F;
+    public float Temperature_Discrimination { get; set; } = 1.0F;
 }
 
 public class Prompt

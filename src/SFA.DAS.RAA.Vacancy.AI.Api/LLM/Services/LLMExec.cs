@@ -36,13 +36,13 @@ public class LLMExec(ILogger<LLMExec> logger,IVacancyQA qa, IOptions<VacancyAiCo
         var aichecks_shortlist = new ConcurrentBag<AICheckOutput>();
 
         await Task.WhenAll(
-        GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "DiscriminationCheck",config.DiscriminationPrompt, config.Temperature_discrimination),
-        GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "TextInconsistencyCheck",config.MissingContentPrompt, config.Temperature_missingcontent));
+        GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "DiscriminationCheck",config.DiscriminationPrompt, config.Temperature_Discrimination),
+        GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "TextInconsistencyCheck",config.MissingContentPrompt, config.Temperature_MissingContent));
 
 
         var spellingAndGrammarChecks = new ConcurrentBag<AICheckOutput>();
         var tasks = spellingAndGrammarInputCheck
-            .Select(key => GetCheckLlmResult(key.Value, llmerrors, spellingAndGrammarChecks, $"Spelling Check {key.Key}", config.SpellingCheckPrompt, config.Temperature_spellcheck))
+            .Select(key => GetCheckLlmResult(key.Value, llmerrors, spellingAndGrammarChecks, $"Spelling Check {key.Key}", config.SpellingCheckPrompt, config.Temperature_SpellCheck))
             .ToList();
         
         await Task.WhenAll(tasks);
