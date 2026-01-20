@@ -15,9 +15,7 @@ public static class AddServiceRegistrationExtension
         // validators
         services.AddValidatorsFromAssembly(typeof(Program).Assembly, includeInternalTypes: true);
         services.AddScoped<ILLMExec, LLMExec>();
-        services.AddScoped<IVacancyQA, VacancyQA>();
-        services.AddScoped<IQueueHandlerSimple, QueueHandlerSimple>();
-        services.AddScoped<IQueueReader, QueueReader>();
+        services.AddScoped<IVacancyQA, VacancyQA>();        
     }
 
     public static void ConfigureHealthChecks(this IServiceCollection services)
