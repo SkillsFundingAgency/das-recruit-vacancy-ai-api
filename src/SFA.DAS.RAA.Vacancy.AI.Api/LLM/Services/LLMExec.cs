@@ -36,6 +36,7 @@ public class LLMExec(ILogger<LLMExec> logger,IVacancyQA qa, IOptions<VacancyAiCo
         var aichecks_shortlist = new ConcurrentBag<AICheckOutput>();
         var spellingAndGrammarChecks = new ConcurrentBag<AICheckOutput>();
 
+
         List<Task> list_of_tasks = new List<Task>();
         list_of_tasks.Add(GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "DiscriminationCheck", config.DiscriminationPrompt, config.Temperature_Discrimination));
         list_of_tasks.Add(GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "TextInconsistencyCheck", config.MissingContentPrompt, config.Temperature_MissingContent));
