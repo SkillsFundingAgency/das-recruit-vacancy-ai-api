@@ -34,18 +34,18 @@ public class LLMExec(ILogger<LLMExec> logger,IVacancyQA qa, IOptions<VacancyAiCo
 
         var llmerrors = new ConcurrentBag<ErrorReturnObject>();
         var aichecks_shortlist = new ConcurrentBag<AICheckOutput>();
-
-        await Task.WhenAll(
-        GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "DiscriminationCheck",config.DiscriminationPrompt, config.Temperature_Discrimination),
-        GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "TextInconsistencyCheck",config.MissingContentPrompt, config.Temperature_MissingContent));
-
-
         var spellingAndGrammarChecks = new ConcurrentBag<AICheckOutput>();
-        var tasks = spellingAndGrammarInputCheck
+
+        List<Task> list_of_tasks = new List<Task>();
+        list_of_tasks.Add(GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "DiscriminationCheck", config.DiscriminationPrompt, config.Temperature_Discrimination));
+        list_of_tasks.Add(GetCheckLlmResult(vacancyInput.VacancyFull, llmerrors, aichecks_shortlist, "TextInconsistencyCheck", config.MissingContentPrompt, config.Temperature_MissingContent));
+        var spelling_tasks = spellingAndGrammarInputCheck
             .Select(key => GetCheckLlmResult(key.Value, llmerrors, spellingAndGrammarChecks, $"Spelling Check {key.Key}", config.SpellingCheckPrompt, config.Temperature_SpellCheck))
             .ToList();
+        list_of_tasks.AddRange(spelling_tasks);        
+
+        await Task.WhenAll(list_of_tasks);
         
-        await Task.WhenAll(tasks);
 
         var spellingChecks = new SpellingChecks
         {
