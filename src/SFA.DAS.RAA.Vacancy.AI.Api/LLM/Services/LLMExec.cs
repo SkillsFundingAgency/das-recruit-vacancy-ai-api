@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Options;
-using SFA.DAS.RAA.Vacancy.AI.Api.Configuration;
+using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
 using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services;

@@ -1,4 +1,4 @@
-namespace SFA.DAS.RAA.Vacancy.AI.Api.Configuration;
+namespace SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
 
 public class VacancyAiConfiguration
 {

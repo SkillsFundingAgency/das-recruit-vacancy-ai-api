@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using SFA.DAS.Api.Common.Infrastructure;
 
-namespace SFA.DAS.RAA.Vacancy.AI.Api.AppStart;
+namespace SFA.DAS.RAA.Vacancy.AI.Api.Core.AppStart;
 
 [ExcludeFromCodeCoverage]
 public static class HealthCheckStartup

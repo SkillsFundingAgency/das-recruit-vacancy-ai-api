@@ -6,10 +6,11 @@ using SFA.DAS.Api.Common.AppStart;
 using SFA.DAS.Api.Common.Configuration;
 using SFA.DAS.Api.Common.Infrastructure;
 using SFA.DAS.Configuration.AzureTableStorage;
-using SFA.DAS.RAA.Vacancy.AI.Api.AppStart;
-using SFA.DAS.RAA.Vacancy.AI.Api.Filters;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using SFA.DAS.RAA.Vacancy.AI.Api.Core.AppStart;
+using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
+using SFA.DAS.RAA.Vacancy.AI.Api.Core.Filters;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api;
 
@@ -67,6 +68,8 @@ internal class Startup
             services
                 .AddHealthChecks();
         }
+        
+        var connectionStringConfiguration = Configuration.GetSection(nameof(ConnectionStrings)).Get<ConnectionStrings>();
 
         services
             .AddMvc(o =>
@@ -91,8 +94,9 @@ internal class Startup
             });
 
         services.AddConfigurationOptions(Configuration);
-        services.AddApplicationDependencies();
         services.AddOpenTelemetryRegistration(Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]!);
+        services.AddApplicationDependencies();
+        services.AddDatabaseRegistration(connectionStringConfiguration!, Configuration["EnvironmentName"]);
         services.ConfigureHealthChecks();
         services.AddControllers();
         services.AddEndpointsApiExplorer();
