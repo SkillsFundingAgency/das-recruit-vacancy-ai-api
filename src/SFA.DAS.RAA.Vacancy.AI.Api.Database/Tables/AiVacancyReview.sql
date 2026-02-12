@@ -1,8 +1,9 @@
 CREATE TABLE dbo.AiVacancyReview (
-    [Id]                int NOT NULL IDENTITY,
     [VacancyReviewId]   uniqueidentifier NOT NULL,
-    [Status]            tinyint NOT NULL,
+    [VacancyId]         uniqueidentifier NOT NULL,
+    [Status]            nvarchar(12) NOT NULL,
     [Output]            nvarchar(max) NULL,
-    CONSTRAINT [PK_AiVacancyReview] PRIMARY KEY (Id),
-    INDEX [IX_AiVacancyReview_VacancyReviewId] NONCLUSTERED(VacancyReviewId)
+    [CreatedDate]       datetime2(7) NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT [PK_AiVacancyReview] PRIMARY KEY (VacancyReviewId),
+    INDEX [IX_AiVacancyReview_VacancyId] NONCLUSTERED(VacancyId)
 )
