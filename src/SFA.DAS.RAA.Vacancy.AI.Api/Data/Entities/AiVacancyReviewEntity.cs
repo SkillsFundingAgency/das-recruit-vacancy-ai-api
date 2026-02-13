@@ -14,4 +14,5 @@ public class AiVacancyReviewEntity
     public string? Output { get; set; }
     [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public DateTime CreatedDate { get; set; }
+    public DateTime? UpdatedDate { get; set; }
 }
