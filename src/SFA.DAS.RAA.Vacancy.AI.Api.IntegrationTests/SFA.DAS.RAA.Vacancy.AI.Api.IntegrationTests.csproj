@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentAssertions" Version="7.2.1" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.24" />
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+      <PackageReference Include="NUnit" Version="4.4.0" />
+      <PackageReference Include="NUnit.Analyzers" Version="4.11.2">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="NUnit3TestAdapter" Version="6.1.0" />
+      <PackageReference Include="SFA.DAS.Testing.AutoFixture" Version="17.1.146" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SFA.DAS.RAA.Vacancy.AI.Api.Testing\SFA.DAS.RAA.Vacancy.AI.Api.Testing.csproj" />
+      <ProjectReference Include="..\SFA.DAS.RAA.Vacancy.AI.Api\SFA.DAS.RAA.Vacancy.AI.Api.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="appsettings.Test.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>

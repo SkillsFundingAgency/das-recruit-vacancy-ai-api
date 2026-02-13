@@ -14,6 +14,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFA.DAS.RAA.Vacancy.AI.Api.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFA.DAS.RAA.Vacancy.AI.Api.Database", "SFA.DAS.RAA.Vacancy.AI.Api.Database\SFA.DAS.RAA.Vacancy.AI.Api.Database.csproj", "{F319EF1B-75B3-4989-BCFC-2B2C4C56618B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFA.DAS.RAA.Vacancy.AI.Api.IntegrationTests", "SFA.DAS.RAA.Vacancy.AI.Api.IntegrationTests\SFA.DAS.RAA.Vacancy.AI.Api.IntegrationTests.csproj", "{3B818D45-275B-45BF-8CC1-4AF7CB8CCFDC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFA.DAS.RAA.Vacancy.AI.Api.Testing", "SFA.DAS.RAA.Vacancy.AI.Api.Testing\SFA.DAS.RAA.Vacancy.AI.Api.Testing.csproj", "{0E9C959A-69B9-4270-9E8B-4CE48F30B4E9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +36,14 @@ Global
 		{F319EF1B-75B3-4989-BCFC-2B2C4C56618B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F319EF1B-75B3-4989-BCFC-2B2C4C56618B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F319EF1B-75B3-4989-BCFC-2B2C4C56618B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B818D45-275B-45BF-8CC1-4AF7CB8CCFDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B818D45-275B-45BF-8CC1-4AF7CB8CCFDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B818D45-275B-45BF-8CC1-4AF7CB8CCFDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B818D45-275B-45BF-8CC1-4AF7CB8CCFDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E9C959A-69B9-4270-9E8B-4CE48F30B4E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E9C959A-69B9-4270-9E8B-4CE48F30B4E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E9C959A-69B9-4270-9E8B-4CE48F30B4E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E9C959A-69B9-4270-9E8B-4CE48F30B4E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -41,5 +53,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F02C1A74-FB0E-4DBC-9D67-A8D538BCC455} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{3B818D45-275B-45BF-8CC1-4AF7CB8CCFDC} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{0E9C959A-69B9-4270-9E8B-4CE48F30B4E9} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 EndGlobal

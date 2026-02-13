@@ -1,23 +1,12 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Options;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
 using SFA.DAS.RAA.Vacancy.AI.Api.Data.Entities;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Data;
 
-
-public interface IAiDataContext
-{
-    DbSet<AiVacancyReviewEntity> AiVacancyReviewEntities { get; }
-    DatabaseFacade Database { get; }
-    Task Ping(CancellationToken cancellationToken);
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-    void SetValues<TEntity>(TEntity to, TEntity from) where TEntity : class;
-}
-
-public class AiDataContext: DbContext, IAiDataContext
+internal class AiDataContext: DbContext, IAiDataContext
 {
     private readonly ConnectionStrings? _configuration;
     
