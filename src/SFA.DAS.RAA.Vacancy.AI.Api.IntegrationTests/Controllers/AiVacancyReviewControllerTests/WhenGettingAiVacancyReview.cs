@@ -1,4 +1,5 @@
-﻿using SFA.DAS.RAA.Vacancy.AI.Api.Core;
+﻿using System.Net;
+using SFA.DAS.RAA.Vacancy.AI.Api.Core;
 using SFA.DAS.RAA.Vacancy.AI.Api.Data.Entities;
 using SFA.DAS.RAA.Vacancy.AI.Api.Models;
 
@@ -41,6 +42,6 @@ public class WhenGettingAiVacancyReview: BaseFixture
         var response = await Client.GetAsync($"{RouteNames.AiVacancyReview}/{id}");
     
         // assert
-        response.IsSuccessStatusCode.Should().BeFalse();
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

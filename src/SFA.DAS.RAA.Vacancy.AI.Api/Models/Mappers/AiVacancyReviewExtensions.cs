@@ -44,8 +44,8 @@ internal static class AiVacancyReviewExtensions
         return new AiVacancyReviewEntity
         {
             VacancyReviewId = vacancyReviewId,
-            VacancyId = dto.VacancyId,
-            Status = dto.Status,
+            VacancyId = dto.VacancyId!.Value,
+            Status = dto.Status!.Value,
             Output = dto.Output,
         };
     }

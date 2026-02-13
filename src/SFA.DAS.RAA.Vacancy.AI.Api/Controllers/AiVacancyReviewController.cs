@@ -36,19 +36,19 @@ public class AiVacancyReviewController: ControllerBase
         [FromBody] PutAiVacancyReviewDto dto,
         CancellationToken cancellationToken)
     {
-        var dtoEntity = dto.ToEntity(vacancyReviewId);
+        var newEntityValues = dto.ToEntity(vacancyReviewId);
         var entity = await dataContext.AiVacancyReviewEntities.FirstOrDefaultAsync(x => x.VacancyReviewId == vacancyReviewId, cancellationToken: cancellationToken);
         if (entity is not null)
         {
-            dataContext.SetValues(entity, dtoEntity);
+            dataContext.SetValues(entity, newEntityValues);
             entity.UpdatedDate = DateTime.UtcNow;
             await dataContext.SaveChangesAsync(cancellationToken);
             return TypedResults.Ok();
         }
 
-        await dataContext.AiVacancyReviewEntities.AddAsync(dtoEntity, cancellationToken);
+        await dataContext.AiVacancyReviewEntities.AddAsync(newEntityValues, cancellationToken);
         await dataContext.SaveChangesAsync(cancellationToken);
-        return TypedResults.Created($"{RouteNames.AiVacancyReview}/{dtoEntity.VacancyReviewId}");
+        return TypedResults.Created($"{RouteNames.AiVacancyReview}/{newEntityValues.VacancyReviewId}");
     }
     
     [HttpPatch, Route("{vacancyReviewId:guid}")]

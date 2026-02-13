@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
@@ -6,6 +7,7 @@ using SFA.DAS.RAA.Vacancy.AI.Api.Data.Entities;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Data;
 
+[ExcludeFromCodeCoverage]
 internal class AiDataContext: DbContext, IAiDataContext
 {
     private readonly ConnectionStrings? _configuration;
