@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SFA.DAS.Api.Common.Configuration;
@@ -15,7 +14,6 @@ public static class AddServiceRegistrationExtension
     public static void AddApplicationDependencies(this IServiceCollection services)
     {
         // validators
-        services.AddValidatorsFromAssembly(typeof(Program).Assembly, includeInternalTypes: true);
         services.AddScoped<ILLMExec, LLMExec>();
         services.AddScoped<IVacancyQA, VacancyQA>();
     }
