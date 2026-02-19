@@ -5,9 +5,10 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Models;
 
 public class PutAiVacancyReviewDto
 {
-    [Required]
-    public Guid? VacancyId { get; set; }
+    public bool ManualReviewRequired { get; set; }
     public string? Output { get; set; }
     [Required]
-    public ReviewStatus? Status { get; set; }
+    public AiReviewStatus? Status { get; set; }
+    [Required]
+    public Guid? VacancyId { get; set; }
 }

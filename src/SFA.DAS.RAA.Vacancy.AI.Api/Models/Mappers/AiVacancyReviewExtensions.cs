@@ -12,6 +12,7 @@ internal static class AiVacancyReviewExtensions
             VacancyReviewId = entity.VacancyReviewId,
             VacancyId = entity.VacancyId,
             Status = entity.Status,
+            ManualReviewRequired = entity.ManualReviewRequired,
             Output = entity.Output,
             CreatedDate = entity.CreatedDate,
             UpdatedDate = entity.UpdatedDate,
@@ -23,18 +24,9 @@ internal static class AiVacancyReviewExtensions
         ArgumentNullException.ThrowIfNull(entity);
         return new PatchableAiVacancyReviewDto
         {
-            Status = entity.Status,
+            ManualReviewRequired = entity.ManualReviewRequired,
             Output = entity.Output,
-        };
-    }
-    
-    public static AiVacancyReviewEntity ToEntity(this PatchableAiVacancyReviewDto dto)
-    {
-        ArgumentNullException.ThrowIfNull(dto);
-        return new AiVacancyReviewEntity
-        {
-            Status = dto.Status,
-            Output = dto.Output,
+            Status = entity.Status,
         };
     }
 
@@ -45,8 +37,9 @@ internal static class AiVacancyReviewExtensions
         {
             VacancyReviewId = vacancyReviewId,
             VacancyId = dto.VacancyId!.Value,
-            Status = dto.Status!.Value,
+            ManualReviewRequired = dto.ManualReviewRequired,
             Output = dto.Output,
+            Status = dto.Status!.Value,
         };
     }
 }

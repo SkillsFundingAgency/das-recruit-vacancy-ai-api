@@ -3,7 +3,7 @@
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Domain;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum ReviewStatus
+public enum AiReviewStatus
 {
     Pending,
     Passed,

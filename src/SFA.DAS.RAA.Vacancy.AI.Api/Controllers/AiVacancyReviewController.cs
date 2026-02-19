@@ -77,7 +77,9 @@ public class AiVacancyReviewController: ControllerBase
             return TypedResults.ValidationProblem(ex.ToProblemsDictionary());
         }
         
-        dataContext.SetValues(entity, patchableDto.ToEntity());
+        entity.ManualReviewRequired = patchableDto.ManualReviewRequired;
+        entity.Output = patchableDto.Output;
+        entity.Status = patchableDto.Status;
         entity.UpdatedDate = DateTime.UtcNow;
         await dataContext.SaveChangesAsync(cancellationToken);
         return TypedResults.Ok();

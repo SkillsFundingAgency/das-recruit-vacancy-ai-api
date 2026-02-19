@@ -70,7 +70,7 @@ public class WhenPatchingAiVacanyReview: BaseFixture
         var expectedEntity = new AiVacancyReviewEntity
         {
             Output = "foo",
-            Status = ReviewStatus.Passed    
+            Status = AiReviewStatus.Passed    
         };
         
         Server.DataContext
