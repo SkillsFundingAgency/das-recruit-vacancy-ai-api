@@ -4,7 +4,7 @@ using SFA.DAS.RAA.Vacancy.AI.Api.Core.Http;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Services;
 
-public class AiReviewResultV1: AiReviewResult
+public class AiReviewResultV1: IAiReviewResult
 {
     public AzureAiResponse<Dictionary<string, string>> SpellcheckResult { get; set; }
     public AzureAiResponse<Dictionary<string, string>> DiscriminationResult { get; set; }
@@ -24,7 +24,9 @@ public class AiReviewResultV1: AiReviewResult
         return total + (anyErrors ? 0.5 : 0);
     }
 
-    public override double GetScore()
+    public int Version => 1;
+
+    public double GetScore()
     {
         var spellCheckScore = GetSpellcheckScore();
         var discriminationScore = GetStatusScore(DiscriminationResult?.StatusCode) + (DiscriminationResult?.Result?.Count(x => !string.IsNullOrWhiteSpace(x.Value)) ?? 1);

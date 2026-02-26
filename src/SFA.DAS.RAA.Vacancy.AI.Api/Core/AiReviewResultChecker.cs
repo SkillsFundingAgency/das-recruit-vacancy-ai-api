@@ -5,12 +5,12 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Core;
 
 public interface IAiReviewResultChecker
 {
-    bool FlagForReview(AiReviewResult review, out AiReviewStatus status);
+    bool FlagForReview(IAiReviewResult review, out AiReviewStatus status);
 }
 
 public class AiReviewResultChecker(IRandomNumberGenerator generator): IAiReviewResultChecker
 {
-    public bool FlagForReview(AiReviewResult review, out AiReviewStatus status)
+    public bool FlagForReview(IAiReviewResult review, out AiReviewStatus status)
     {
         status = AiReviewStatus.Failed;
         var totalScore = review.GetScore();
