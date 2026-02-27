@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 
-namespace SFA.DAS.RAA.Vacancy.AI.Api.AppStart;
+namespace SFA.DAS.RAA.Vacancy.AI.Api.Core.AppStart;
 
 [ExcludeFromCodeCoverage]
 public static class AddOpenTelemetryExtensions

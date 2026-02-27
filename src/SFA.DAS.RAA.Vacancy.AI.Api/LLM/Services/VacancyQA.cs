@@ -3,7 +3,7 @@ using Azure;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.Options;
 using OpenAI.Chat;
-using SFA.DAS.RAA.Vacancy.AI.Api.Configuration;
+using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
 using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services;
