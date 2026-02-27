@@ -7,7 +7,8 @@ public class AiVacancyReviewDto
     public Guid VacancyReviewId { get; set; }
     public Guid VacancyId { get; set; }
     public string? Output { get; set; }
-    public ReviewStatus Status { get; set; }
+    public bool ManualReviewRequired { get; set; }
+    public AiReviewStatus Status { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdatedDate { get; set; }
 }
