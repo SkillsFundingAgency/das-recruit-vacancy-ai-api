@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Azure;
 using Azure.AI.OpenAI;
@@ -13,7 +14,7 @@ public interface IVacancyQA
     bool FlagifyLLMResponse(string llMtext, bool invertLogic, bool spellingCheck);
 
     // Excluded from code coverage BECAUSE this relies on Azure OpenAI and is thus nondeterministic output.
-    Task<LLMReturnResult> CallLLM(string systemHeader, string mainDirective, string additionalDirective, string vacancyTextToReview, string checkname);
+    Task<LLMReturnResult> CallLLM(string systemHeader, string mainDirective, string additionalDirective, string vacancyTextToReview, string checkname, float temperature);
 }
 public class VacancyQA(ILogger<VacancyQA> logger, IOptions<VacancyAiConfiguration> configuration) : IVacancyQA
 {
@@ -37,8 +38,10 @@ public class VacancyQA(ILogger<VacancyQA> logger, IOptions<VacancyAiConfiguratio
     }
 
     [ExcludeFromCodeCoverage] // Excluded from code coverage BECAUSE this relies on Azure OpenAI and is thus nondeterministic output.
-    public async Task<LLMReturnResult> CallLLM(string systemHeader, string mainDirective, string additionalDirective, string vacancyTextToReview, string checkname)
+    public async Task<LLMReturnResult> CallLLM(string systemHeader, string mainDirective, string additionalDirective, string vacancyTextToReview, string checkname,float temperature=1.0F)
     {
+        Stopwatch sw_internal = new Stopwatch();
+        sw_internal.Start();
         try
         {
             var azureclient = new AzureOpenAIClient(
@@ -47,7 +50,11 @@ public class VacancyQA(ILogger<VacancyQA> logger, IOptions<VacancyAiConfiguratio
             );
 
             var chatclient = azureclient.GetChatClient("gpt-4o");
-            
+            var ChatOptions = new ChatCompletionOptions()
+            {
+                Temperature = temperature
+            };
+
             ChatCompletion resp = await chatclient.CompleteChatAsync(
                 [
                     new SystemChatMessage(systemHeader),
@@ -60,15 +67,20 @@ public class VacancyQA(ILogger<VacancyQA> logger, IOptions<VacancyAiConfiguratio
                          {vacancyTextToReview}
                          """
                     )
-                ]
+                ],ChatOptions
+                
             );
-            
-            return new LLMReturnResult { LLMResponse = resp.Content[0].Text, LLMErrorFlag = false, Error= new ErrorReturnObject { Check = "", Errormsg = "" } };
+            sw_internal.Stop();
+            float jobexectime = sw_internal.ElapsedMilliseconds / 1000.0F; // convert to seconds
+            logger.LogDebug(checkname+": LLM response returned OK in " + jobexectime.ToString() + " seconds");
+            return new LLMReturnResult { LLMResponse = resp.Content[0].Text, LLMErrorFlag = false, Error= new ErrorReturnObject { Check = "", Errormsg = "" },CheckRuntime=jobexectime };
         }
         catch(Exception ex)
         {
+            sw_internal.Stop();
+            float jobexectime = sw_internal.ElapsedMilliseconds / 1000.0F; // convert to seconds
             logger.LogError(ex, "LLM returned error for check {checkname}",checkname);
-            return new LLMReturnResult { LLMResponse = "LANGUAGE MODEL API FAILED", LLMErrorFlag = true,Error=new ErrorReturnObject { Check = checkname, Errormsg = ex.Message } };
+            return new LLMReturnResult { LLMResponse = "LANGUAGE MODEL API FAILED", LLMErrorFlag = true,Error=new ErrorReturnObject { Check = checkname, Errormsg = ex.Message },CheckRuntime=jobexectime };
         }
     }
 }
