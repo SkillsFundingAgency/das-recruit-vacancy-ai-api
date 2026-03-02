@@ -8,5 +8,7 @@ public class AICheckReturnResultObject
     public TrafficLight? TrafficLightScore { get; set; } = new(-1);
         
     public bool? RecommendReview { get; set; } = false;
-    public List<ErrorReturnObject> Errors { get; set; } = []; 
+    public List<ErrorReturnObject> Errors { get; set; } = [];
+    
+    public float Job_Runtime { get; set; } = -1.0F;
 }

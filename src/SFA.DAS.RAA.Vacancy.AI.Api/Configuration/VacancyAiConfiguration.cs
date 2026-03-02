@@ -2,11 +2,16 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Configuration;
 
 public class VacancyAiConfiguration
 {
+
     public string LlmKey { get; set; }
     public string LlmEndpointShort { get; set; }
     public Prompt DiscriminationPrompt { get; set; }
     public Prompt MissingContentPrompt { get; set; }
     public Prompt SpellingCheckPrompt { get; set; }
+
+    public float Temperature_SpellCheck { get; set; } = 1.0F;
+    public float Temperature_MissingContent { get; set; } = 1.0F;
+    public float Temperature_Discrimination { get; set; } = 1.0F;
 }
 
 public class Prompt
