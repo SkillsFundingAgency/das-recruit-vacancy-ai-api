@@ -13,7 +13,7 @@ public interface IVacancyQA
     bool FlagifyLLMResponse(string llMtext, bool invertLogic, bool spellingCheck);
 
     // Excluded from code coverage BECAUSE this relies on Azure OpenAI and is thus nondeterministic output.
-    Task<LLMReturnResult> CallLLM(string systemHeader, string mainDirective, string additionalDirective, string vacancyTextToReview, string checkname);
+    Task<LLMReturnResult> CallLLM(string systemHeader, string mainDirective, string additionalDirective, string vacancyTextToReview, string checkname,float temperature=1.0F);
 }
 public class VacancyQA(ILogger<VacancyQA> logger, IOptions<VacancyAiConfiguration> configuration) : IVacancyQA
 {
@@ -37,15 +37,19 @@ public class VacancyQA(ILogger<VacancyQA> logger, IOptions<VacancyAiConfiguratio
     }
 
     [ExcludeFromCodeCoverage] // Excluded from code coverage BECAUSE this relies on Azure OpenAI and is thus nondeterministic output.
-    public async Task<LLMReturnResult> CallLLM(string systemHeader, string mainDirective, string additionalDirective, string vacancyTextToReview, string checkname)
+    public async Task<LLMReturnResult> CallLLM(string systemHeader, string mainDirective, string additionalDirective, string vacancyTextToReview, string checkname,float temperature=1.0F)
     {
         try
         {
+
             var azureclient = new AzureOpenAIClient(
                 new Uri(configuration.Value.LlmEndpointShort),
                 new AzureKeyCredential(configuration.Value.LlmKey)
             );
-
+            var ChatOptions = new ChatCompletionOptions() // Configurable temperature as required by Data Sci testing.
+            {
+                Temperature = temperature
+            };
             var chatclient = azureclient.GetChatClient("gpt-4o");
             
             ChatCompletion resp = await chatclient.CompleteChatAsync(
@@ -60,7 +64,7 @@ public class VacancyQA(ILogger<VacancyQA> logger, IOptions<VacancyAiConfiguratio
                          {vacancyTextToReview}
                          """
                     )
-                ]
+                ],ChatOptions
             );
             
             return new LLMReturnResult { LLMResponse = resp.Content[0].Text, LLMErrorFlag = false, Error= new ErrorReturnObject { Check = "", Errormsg = "" } };
