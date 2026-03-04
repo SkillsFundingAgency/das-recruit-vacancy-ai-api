@@ -1,0 +1,12 @@
+﻿<Project Sdk="MsBuild.Sdk.SqlProj/3.2.0">
+    <PropertyGroup>
+        <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAureV12DatabaseSchemaProvider</DSP>
+        <SqlServerVersion>SqlAzure</SqlServerVersion>
+        <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
+    </PropertyGroup>
+    <ItemGroup>
+        <None Include="Database.publish.xml">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+</Project>

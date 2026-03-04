@@ -1,9 +1,9 @@
-﻿using Microsoft.OpenApi.Any;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Diagnostics.CodeAnalysis;
 
-namespace SFA.DAS.RAA.Vacancy.AI.Api.Filters;
+namespace SFA.DAS.RAA.Vacancy.AI.Api.Core.Filters;
 
 [ExcludeFromCodeCoverage]
 public class HealthChecksFilter : IDocumentFilter

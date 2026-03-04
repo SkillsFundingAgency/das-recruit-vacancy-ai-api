@@ -2,7 +2,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
 
 public class InputObject
 {
-    public string? VacancyId { get; set; } = "";
+    public required string? VacancyId { get; set; } = "";
     public string? Title { get; set; } = "";
     public string? ShortDescription { get; set; } = "";
     public string? Description { get; set; } = "";
