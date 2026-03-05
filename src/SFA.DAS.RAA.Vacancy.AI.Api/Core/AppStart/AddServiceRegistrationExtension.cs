@@ -22,6 +22,7 @@ public static class AddServiceRegistrationExtension
         services.AddScoped<IAiReviewResultChecker, AiReviewResultChecker>();
         services.AddScoped<IAzureAiClient, AzureAiClient>();
         services.AddScoped<IRecruitAiService, RecruitAiService>();
+        services.AddScoped<IEventsService, EventsService>();
     }
 
     public static void ConfigureHealthChecks(this IServiceCollection services)
