@@ -8,6 +8,7 @@ using SFA.DAS.Api.Common.Infrastructure;
 using SFA.DAS.Configuration.AzureTableStorage;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using NServiceBus.ObjectBuilder.MSDependencyInjection;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.AppStart;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Filters;
@@ -129,5 +130,10 @@ internal class Startup
         app.UseHttpsRedirection();
         app.UseAuthorization();
         app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+    }
+    
+    public void ConfigureContainer(UpdateableServiceProvider serviceProvider)
+    {
+        serviceProvider.StartNServiceBus(Configuration);
     }
 }
