@@ -12,6 +12,7 @@ using NServiceBus.ObjectBuilder.MSDependencyInjection;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.AppStart;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Filters;
+using SFA.DAS.RAA.Vacancy.AI.Api.Core.NServiceBus;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api;
 
