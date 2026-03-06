@@ -40,6 +40,8 @@ public static class AddServiceRegistrationExtension
         services.AddSingleton(cfg => cfg.GetService<IOptions<AzureActiveDirectoryConfiguration>>()!.Value);
         services.Configure<VacancyAiConfiguration>(configuration.GetSection(nameof(VacancyAiConfiguration)));
         services.AddSingleton(cfg => cfg.GetService<IOptions<VacancyAiConfiguration>>()!.Value);
+        services.Configure<ConnectionStrings>(configuration.GetSection(nameof(ConnectionStrings)));
+        services.AddSingleton(cfg => cfg.GetService<IOptions<ConnectionStrings>>()!.Value);
     }
     
     public static void AddDatabaseRegistration(

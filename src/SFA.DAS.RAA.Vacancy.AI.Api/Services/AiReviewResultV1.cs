@@ -6,9 +6,9 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Services;
 
 public class AiReviewResultV1: IAiReviewResult
 {
-    public AzureAiResponse<Dictionary<string, string>> SpellcheckResult { get; set; }
-    public AzureAiResponse<Dictionary<string, string>> DiscriminationResult { get; set; }
-    public AzureAiResponse<Dictionary<string, string>> ContentEvaluationResult { get; set; }
+    public AzureAiResponse<Dictionary<string, string>>? SpellcheckResult { get; init; }
+    public AzureAiResponse<Dictionary<string, string>>? DiscriminationResult { get; init; }
+    public AzureAiResponse<Dictionary<string, string>>? ContentEvaluationResult { get; init; }
 
     private static double GetStatusScore(HttpStatusCode? status)
     {
