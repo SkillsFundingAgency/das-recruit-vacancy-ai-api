@@ -15,30 +15,35 @@ public class RecruitAiService(
 {
     public async Task<AiReviewResultV1> ReviewVacancyAsync(PostPerformReviewDto data, CancellationToken cancellationToken)
     {
-        var spellcheckFields = new Dictionary<string, string>
-        {
-            ["AdditionalTrainingDescription"] = data.AdditionalTrainingDescription,
-            ["Description"] = data.Description,
-            ["EmployerDescription"] = data.EmployerDescription,
-            ["ShortDescription"] = data.ShortDescription,
-            ["Title"] = data.Title,
-            ["TrainingDescription"] = data.TrainingDescription,
-        };
-
-        var fieldsToCheck = new Dictionary<string, string>(spellcheckFields)
-        {
-            ["TrainingProgrammeTitle"] = data.TrainingProgrammeTitle,
-            ["TrainingProgrammeLevel"] = data.TrainingProgrammeLevel,
-            ["ThingsToConsider"] = data.ThingsToConsider,
-        };
+        var fields = new Dictionary<string, string?>
+            {
+                ["Title"] = data.Title,
+                ["ShortDescription"] = data.ShortDescription,
+                ["Description"] = data.Description,
+                ["EmployerDescription"] = data.EmployerDescription,
+                ["ThingsToConsider"] = data.ThingsToConsider,
+                ["TrainingDescription"] = data.TrainingDescription,
+                ["AdditionalTrainingDescription"] = data.AdditionalTrainingDescription,
+                ["TrainingProgrammeTitle"] = data.TrainingProgrammeTitle,
+                ["TrainingProgrammeLevel"] = data.TrainingProgrammeLevel,
+                ["OutcomeDescription"] = data.OutcomeDescription,
+                ["ApplicationInstructions"] = data.ApplicationInstructions,
+                ["AdditionalQuestion1"] = data.AdditionalQuestion1,
+                ["AdditionalQuestion2"] = data.AdditionalQuestion2,
+                ["WageAdditionalInformation"] = data.WageAdditionalInformation,
+                ["WageCompanyBenefitsInformation"] = data.WageCompanyBenefitsInformation,
+                ["WageWorkingWeekDescription"] = data.WageWorkingWeekDescription,
+            }
+            .Where(x => !string.IsNullOrWhiteSpace(x.Value))
+            .ToDictionary(x => x.Key, x => x.Value!);
 
         var spellcheckPrompt = new AzureAiClientPrompt(configuration.SpellingCheckPrompt.SystemPrompt, configuration.SpellingCheckPrompt.UserHeader, configuration.SpellingCheckPrompt.UserInstruction);
         var discriminationPrompt = new AzureAiClientPrompt(configuration.DiscriminationPrompt.SystemPrompt, configuration.DiscriminationPrompt.UserHeader, configuration.DiscriminationPrompt.UserInstruction);
         var contentEvaluationPrompt = new AzureAiClientPrompt(configuration.MissingContentPrompt.SystemPrompt, configuration.MissingContentPrompt.UserHeader, configuration.MissingContentPrompt.UserInstruction);
         
-        var spellcheckTask = azureAiClient.PerformCheckAsync<Dictionary<string, string>>(spellcheckPrompt, spellcheckFields, cancellationToken);
-        var discriminationTask = azureAiClient.PerformCheckAsync<Dictionary<string, string>>(discriminationPrompt, fieldsToCheck, cancellationToken);
-        var contentEvaluationTask = azureAiClient.PerformCheckAsync<Dictionary<string, string>>(contentEvaluationPrompt, fieldsToCheck, cancellationToken);
+        var spellcheckTask = azureAiClient.PerformCheckAsync<Dictionary<string, string?>>(spellcheckPrompt, fields, cancellationToken);
+        var discriminationTask = azureAiClient.PerformCheckAsync<Dictionary<string, string?>>(discriminationPrompt, fields, cancellationToken);
+        var contentEvaluationTask = azureAiClient.PerformCheckAsync<Dictionary<string, string?>>(contentEvaluationPrompt, fields, cancellationToken);
         
         await Task.WhenAll(spellcheckTask, discriminationTask, contentEvaluationTask);
 

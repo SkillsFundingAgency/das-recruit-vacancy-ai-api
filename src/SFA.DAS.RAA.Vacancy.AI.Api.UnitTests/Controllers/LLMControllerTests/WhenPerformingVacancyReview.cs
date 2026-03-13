@@ -1,13 +1,11 @@
 ﻿using System.Text.Json;
-using AutoFixture;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using SFA.DAS.RAA.Vacancy.AI.Api.Controllers;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core;
 using SFA.DAS.RAA.Vacancy.AI.Api.Data;
 using SFA.DAS.RAA.Vacancy.AI.Api.Data.Entities;
 using SFA.DAS.RAA.Vacancy.AI.Api.Domain;
-using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
+using SFA.DAS.RAA.Vacancy.AI.Api.Models;
 using SFA.DAS.RAA.Vacancy.AI.Api.Services;
 using SFA.DAS.RAA.Vacancy.AI.Api.Testing;
 
@@ -22,7 +20,7 @@ public class WhenPerformingVacancyReview
     
     [Test, MoqAutoData]
     public async Task Then_The_Ai_Vacancy_Review_Is_Saved(
-        InputObject? data,
+        PostPerformReviewDto? data,
         AiVacancyReviewEntity entity,
         AiReviewResultV1 aiReviewResult,
         CancellationToken cancellationToken,
@@ -69,7 +67,7 @@ public class WhenPerformingVacancyReview
     
     [Test, MoqAutoData]
     public async Task Then_The_Ai_Vacancy_Review_Completed_Event_Is_Published(
-        InputObject? data,
+        PostPerformReviewDto? data,
         AiVacancyReviewEntity entity,
         AiReviewResultV1 aiReviewResult,
         CancellationToken cancellationToken,
@@ -104,7 +102,7 @@ public class WhenPerformingVacancyReview
     
     [Test, MoqAutoData]
     public async Task Then_If_The_Review_Does_Not_Exist_Not_Found_Is_Returned(
-        InputObject? data,
+        PostPerformReviewDto? data,
         CancellationToken cancellationToken,
         [Frozen] Mock<IRecruitAiService> aiService,
         [Frozen] Mock<IAiReviewResultChecker> aiReviewResultChecker,
