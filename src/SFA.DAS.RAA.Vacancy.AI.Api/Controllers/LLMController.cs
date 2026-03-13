@@ -5,8 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core;
 using SFA.DAS.RAA.Vacancy.AI.Api.Data;
 using SFA.DAS.RAA.Vacancy.AI.Api.Domain;
-using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
-using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services;
+using SFA.DAS.RAA.Vacancy.AI.Api.Models;
 using SFA.DAS.RAA.Vacancy.AI.Api.Services;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers;
@@ -20,25 +19,16 @@ public class LlmController : ControllerBase
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
     
-    [HttpPost(Name = "RunLLM")]
-    [ProducesResponseType<AICheckReturnResultObject>(StatusCodes.Status200OK)]
-    public async Task<IResult> RunLLM(
-        [FromServices] ILLMExec llm,
-        [FromBody] InputObject inputvacancy)
-    {
-        var llmoutput= await llm.ExecLLM(inputvacancy);
-        return TypedResults.Ok(llmoutput);
-    }
-    
     [HttpPost, Route("vacancyReview/{vacancyReviewId:guid}/review")]
-    [ProducesResponseType<AICheckReturnResultObject>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IResult> PerformReview(
         [FromServices] IRecruitAiService aiService,
         [FromServices] IAiReviewResultChecker aiReviewResultChecker,
         [FromServices] IAiDataContext dataContext,
         [FromServices] IEventsService eventsService,
         [FromRoute] Guid vacancyReviewId,
-        [FromBody, Required] InputObject? data,
+        [FromBody, Required] PostPerformReviewDto? data,
         CancellationToken cancellationToken)
     {
         var aiVacancyReview = await dataContext.AiVacancyReviewEntities.FirstOrDefaultAsync(x => x.VacancyReviewId == vacancyReviewId, cancellationToken);

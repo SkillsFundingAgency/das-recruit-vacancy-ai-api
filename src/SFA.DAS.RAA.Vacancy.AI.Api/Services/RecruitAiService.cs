@@ -1,28 +1,26 @@
 ﻿using SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
-using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
+using SFA.DAS.RAA.Vacancy.AI.Api.Models;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Services;
 
 public interface IRecruitAiService
 {
-    Task<AiReviewResultV1> ReviewVacancyAsync(InputObject data, CancellationToken cancellationToken);
+    Task<AiReviewResultV1> ReviewVacancyAsync(PostPerformReviewDto data, CancellationToken cancellationToken);
 }
 
 public class RecruitAiService(
     VacancyAiConfiguration configuration,
     IAzureAiClient azureAiClient): IRecruitAiService
 {
-    public async Task<AiReviewResultV1> ReviewVacancyAsync(InputObject data, CancellationToken cancellationToken)
+    public async Task<AiReviewResultV1> ReviewVacancyAsync(PostPerformReviewDto data, CancellationToken cancellationToken)
     {
         var spellcheckFields = new Dictionary<string, string>
         {
             ["AdditionalTrainingDescription"] = data.AdditionalTrainingDescription,
             ["Description"] = data.Description,
             ["EmployerDescription"] = data.EmployerDescription,
-            ["Qualifications"] = data.Qualifications,
             ["ShortDescription"] = data.ShortDescription,
-            ["Skills"] = data.Skills,
             ["Title"] = data.Title,
             ["TrainingDescription"] = data.TrainingDescription,
         };
