@@ -355,4 +355,4 @@ src/.DS_Store
 
 src/SFA.DAS.RAA.Vacancy.AI.Api.UnitTests/.DS_Store
 # Remove any changes from appsettings from git
-src/src/SFA.DAS.RAA.Vacancy.AI.Api/appsettings.json 
+src/SFA.DAS.RAA.Vacancy.AI.Api/appsettings.json 
