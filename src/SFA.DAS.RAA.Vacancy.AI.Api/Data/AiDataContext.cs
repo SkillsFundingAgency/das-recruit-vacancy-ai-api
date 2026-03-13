@@ -38,7 +38,7 @@ internal class AiDataContext: DbContext, IAiDataContext
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
+    {       
         var connection = new SqlConnection { ConnectionString = _configuration!.SqlConnectionString };
         optionsBuilder.UseSqlServer(connection, options => options.EnableRetryOnFailure(5, TimeSpan.FromSeconds(20), null));
         optionsBuilder.UseLazyLoadingProxies();

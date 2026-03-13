@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core;
 using SFA.DAS.RAA.Vacancy.AI.Api.Data;
@@ -8,6 +6,9 @@ using SFA.DAS.RAA.Vacancy.AI.Api.Data.Entities;
 using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
 using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services;
 using SFA.DAS.RAA.Vacancy.AI.Api.Services;
+using System.ComponentModel.DataAnnotations;
+using System.Runtime.InteropServices.Marshalling;
+using System.Text.Json;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers;
 
@@ -31,7 +32,7 @@ public class LlmController : ControllerBase
     }
     
     [HttpPost, Route("vacancyReview/{vacancyReviewId:guid}/review")]
-    [ProducesResponseType<AICheckReturnResultObject>(StatusCodes.Status200OK)]
+    [ProducesResponseType<AILLMResultObject>(StatusCodes.Status200OK)]
     public async Task<IResult> PerformReview(
         [FromServices] IRecruitAiService aiService,
         [FromServices] IAiReviewResultChecker aiReviewResultChecker,
@@ -55,11 +56,26 @@ public class LlmController : ControllerBase
             await dataContext.SaveChangesAsync(cancellationToken);
         }
 
+
         aiVacancyReview.Output = JsonSerializer.Serialize(review, JsonOptions);
+        Console.WriteLine("Matt's Temp debug");
+        Console.WriteLine(review.ToString());
+        Console.WriteLine("*************************");
+        Console.WriteLine(aiVacancyReview.Output.ToString());
+        Console.WriteLine(aiVacancyReview.Output.GetType());
         aiVacancyReview.ManualReviewRequired = flagForReview;
         aiVacancyReview.Status = reviewStatus;
         aiVacancyReview.UpdatedDate = DateTime.Now;
         await dataContext.SaveChangesAsync(cancellationToken);
-        return TypedResults.Ok();
+
+        AILLMResultObject output = new AILLMResultObject();
+
+        output.VacancyId = data.VacancyId.ToString();
+        output.VacancyReviewId = vacancyReviewId.ToString();
+        output.LLMObject = aiVacancyReview.Output;
+        output.ManualReviewRequired = flagForReview.ToString();
+        output.Status = reviewStatus.ToString();
+        output.UpdatedDateTime = aiVacancyReview.UpdatedDate.ToString();
+        return TypedResults.Ok(output);
     }
 }
