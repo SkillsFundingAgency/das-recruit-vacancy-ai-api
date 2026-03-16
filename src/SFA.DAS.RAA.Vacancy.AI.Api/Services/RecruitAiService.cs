@@ -1,4 +1,5 @@
-﻿using SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
+﻿using SFA.DAS.RAA.Vacancy.AI.Api.Core;
+using SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
 using SFA.DAS.RAA.Vacancy.AI.Api.Models;
 
@@ -6,14 +7,15 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Services;
 
 public interface IRecruitAiService
 {
-    Task<AiReviewResultV1> ReviewVacancyAsync(PostPerformReviewDto data, CancellationToken cancellationToken);
+    Task<VacancyAiReviewResponse> ReviewVacancyAsync(PostPerformReviewDto data, CancellationToken cancellationToken);
 }
 
 public class RecruitAiService(
     VacancyAiConfiguration configuration,
+    IAiReviewResultChecker checker,
     IAzureAiClient azureAiClient): IRecruitAiService
 {
-    public async Task<AiReviewResultV1> ReviewVacancyAsync(PostPerformReviewDto data, CancellationToken cancellationToken)
+    public async Task<VacancyAiReviewResponse> ReviewVacancyAsync(PostPerformReviewDto data, CancellationToken cancellationToken)
     {
         var fields = new Dictionary<string, string?>
             {
@@ -46,12 +48,26 @@ public class RecruitAiService(
         var contentEvaluationTask = azureAiClient.PerformCheckAsync<Dictionary<string, string?>>(contentEvaluationPrompt, fields, cancellationToken);
         
         await Task.WhenAll(spellcheckTask, discriminationTask, contentEvaluationTask);
+        return CreateResponse(fields, spellcheckTask.Result, discriminationTask.Result, contentEvaluationTask.Result);
+    }
 
-        return new AiReviewResultV1
+    private VacancyAiReviewResponse CreateResponse(
+        Dictionary<string, string> fields,
+        AzureAiResponse<Dictionary<string, string?>> spellcheckResult,
+        AzureAiResponse<Dictionary<string, string?>> discriminationResult,
+        AzureAiResponse<Dictionary<string, string?>> contentEvaluationResult)
+    {
+        var (status, manualReviewRequired, errors) = checker.AssessResponse(fields, spellcheckResult, discriminationResult, contentEvaluationResult);
+        
+        return new VacancyAiReviewResponse
         {
-            SpellcheckResult = spellcheckTask.Result,
-            DiscriminationResult = discriminationTask.Result,
-            ContentEvaluationResult = contentEvaluationTask.Result,
+            Version = 1,
+            ManualReviewRequired = manualReviewRequired,
+            Status = status,
+            SpellcheckResult = spellcheckResult,
+            DiscriminationResult = discriminationResult,
+            ContentEvaluationResult = contentEvaluationResult,
+            Errors = errors,
         };
     }
 }

@@ -49,7 +49,7 @@ public class AzureAiResponse<T> where T: class
         try
         {
             result = JsonSerializer.Deserialize<T>(json);
-            return true;
+            return result is not null;
         }
         catch (Exception e)
         {

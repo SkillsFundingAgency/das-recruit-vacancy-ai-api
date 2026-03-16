@@ -2,7 +2,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SFA.DAS.RAA.Vacancy.AI.Api.Core;
 using SFA.DAS.RAA.Vacancy.AI.Api.Data;
 using SFA.DAS.RAA.Vacancy.AI.Api.Domain;
 using SFA.DAS.RAA.Vacancy.AI.Api.Models;
@@ -24,7 +23,6 @@ public class LlmController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IResult> PerformReview(
         [FromServices] IRecruitAiService aiService,
-        [FromServices] IAiReviewResultChecker aiReviewResultChecker,
         [FromServices] IAiDataContext dataContext,
         [FromServices] IEventsService eventsService,
         [FromRoute] Guid vacancyReviewId,
@@ -37,20 +35,23 @@ public class LlmController : ControllerBase
             return TypedResults.NotFound();
         }
 
-        if (aiVacancyReview.Status is AiReviewStatus.Pending)
+        if (aiVacancyReview.Status is not AiReviewStatus.Pending)
         {
-            // perform the review
-            var review = await aiService.ReviewVacancyAsync(data!, cancellationToken);
-            var flagForReview = aiReviewResultChecker.FlagForReview(review, out var reviewStatus);
-            
-            // update the entity
-            aiVacancyReview.Output = JsonSerializer.Serialize(review, JsonOptions);
-            aiVacancyReview.ManualReviewRequired = flagForReview;
-            aiVacancyReview.Status = reviewStatus;
-            aiVacancyReview.UpdatedDate = DateTime.Now;
-            await dataContext.SaveChangesAsync(cancellationToken);
+            // ignore anything that isn't in the pending state
+            return TypedResults.Ok();
         }
+        
+        // perform the review
+        var review = await aiService.ReviewVacancyAsync(data!, cancellationToken);
 
+        // update the entity
+        aiVacancyReview.Output = JsonSerializer.Serialize(review, JsonOptions);
+        aiVacancyReview.ManualReviewRequired = review.ManualReviewRequired;
+        aiVacancyReview.Status = review.Status;
+        aiVacancyReview.UpdatedDate = DateTime.Now;
+        aiVacancyReview.Score = review.Errors?.Sum(x => x.Score) ?? 0;
+        await dataContext.SaveChangesAsync(cancellationToken);
+            
         await eventsService.PublishAiVacancyReviewCompletedEventAsync(aiVacancyReview);
         return TypedResults.Ok();
     }
