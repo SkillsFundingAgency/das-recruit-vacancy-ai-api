@@ -22,6 +22,7 @@ public static class AddServiceRegistrationExtension
         services.AddScoped<IAiReviewResultChecker, AiReviewResultChecker>();
         services.AddScoped<IAzureAiClient, AzureAiClient>();
         services.AddScoped<IRecruitAiService, RecruitAiService>();
+        services.AddScoped<IAzureAIClientSpellcheckVerifier, AzureAIClientSpellcheckVerifier>();
     }
 
     public static void ConfigureHealthChecks(this IServiceCollection services)
@@ -54,7 +55,7 @@ public static class AddServiceRegistrationExtension
                 options.UseInMemoryDatabase("SFA.DAS.RAA.Vacancy.AI.Api"), ServiceLifetime.Transient);
         }
         else
-        {
+        {        
             services.AddDbContext<AiDataContext>(options =>
                 options.UseSqlServer(config.SqlConnectionString), ServiceLifetime.Transient);
         }

@@ -9,6 +9,8 @@ public class AiReviewResultV1: IAiReviewResult
     public AzureAiResponse<Dictionary<string, string>> SpellcheckResult { get; set; }
     public AzureAiResponse<Dictionary<string, string>> DiscriminationResult { get; set; }
     public AzureAiResponse<Dictionary<string, string>> ContentEvaluationResult { get; set; }
+    
+    public List<AzureAiResponse<Dictionary<string, string>>> RetrySpellChecks { get; set; }
 
     private static double GetStatusScore(HttpStatusCode? status)
     {

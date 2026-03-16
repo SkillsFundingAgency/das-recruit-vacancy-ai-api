@@ -76,6 +76,14 @@ public class LlmController : ControllerBase
         output.ManualReviewRequired = flagForReview.ToString();
         output.Status = reviewStatus.ToString();
         output.UpdatedDateTime = aiVacancyReview.UpdatedDate.ToString();
+
+
+
+
+
+
+
+
         return TypedResults.Ok(output);
     }
 }

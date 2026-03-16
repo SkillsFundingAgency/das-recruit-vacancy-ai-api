@@ -1,6 +1,9 @@
-﻿using SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
+﻿using Microsoft.AspNetCore.Mvc;
+using OpenAI.Chat;
+using SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
 using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
+using System.ClientModel;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Services;
 
@@ -11,8 +14,9 @@ public interface IRecruitAiService
 
 public class RecruitAiService(
     VacancyAiConfiguration configuration,
-    IAzureAiClient azureAiClient): IRecruitAiService
+    IAzureAiClient azureAiClient, IAzureAIClientSpellcheckVerifier spellchecker): IRecruitAiService
 {
+    public record Spchk_Result(string input,object Value);
     public async Task<AiReviewResultV1> ReviewVacancyAsync(InputObject data, CancellationToken cancellationToken)
     {
         var spellcheckFields = new Dictionary<string, string>
@@ -44,11 +48,38 @@ public class RecruitAiService(
         
         await Task.WhenAll(spellcheckTask, discriminationTask, contentEvaluationTask);
 
+
+        // queue up N spelling and grammar checks for us to spit out / process as well
+        List<Task<AzureAiResponse<Dictionary<string, string>>>> List_spellchecks = [];        
+        foreach (string k in spellcheckFields.Keys) {
+            //field_to_check=
+            string spellfield_name = k;
+            string spellcheck_data = spellcheckFields[k];
+   
+            Task<AzureAiResponse<Dictionary<string, string>>> spag_task =spellchecker.PerformCustomSpellcheck<Dictionary<string,string>>(
+                spellcheckPrompt,
+                spellcheck_data, 
+                spellfield_name,
+                cancellationToken
+                );
+
+            List_spellchecks.Add(spag_task);
+        }
+        await Task.WhenAll(List_spellchecks);
+
+        List < AzureAiResponse < Dictionary<string, string>>> List_SpellcheckResults = [];
+        foreach (Task<AzureAiResponse<Dictionary<string, string>>> x in List_spellchecks) {
+            List_SpellcheckResults.Add(x.Result);
+        }
+
+
         return new AiReviewResultV1
         {
             SpellcheckResult = spellcheckTask.Result,
             DiscriminationResult = discriminationTask.Result,
             ContentEvaluationResult = contentEvaluationTask.Result,
+            RetrySpellChecks=List_SpellcheckResults
+            
         };
     }
 }

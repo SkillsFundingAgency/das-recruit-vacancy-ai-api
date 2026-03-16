@@ -12,8 +12,10 @@ public class AzureAiResponse<T> where T: class
     public string? Refusal { get; set; }
     public T? Result { get; set; }
     public string? RawResult { get; set; }
+    public List<OpenAI.Chat.ChatTokenLogProbabilityDetails> LogProbabilties { get; set; } = null;
+    public string? NameLabel { get; set; }
 
-    public static AzureAiResponse<T> From(ClientResult<ChatCompletion> clientResult)
+    public static AzureAiResponse<T> From(ClientResult<ChatCompletion> clientResult, string name=null)
     {
         var rawResponse = clientResult.GetRawResponse();
         var chatCompletion = clientResult.Value;
@@ -26,10 +28,12 @@ public class AzureAiResponse<T> where T: class
         }
         
         var chatMessageContentPart = chatCompletion.Content.FirstOrDefault();
+        var logproba = clientResult.Value.ContentTokenLogProbabilities;
         var result = new AzureAiResponse<T>
         {
             Refusal = chatCompletion.Refusal,
             StatusCode = (HttpStatusCode)rawResponse.Status,
+            LogProbabilties = clientResult.Value.ContentTokenLogProbabilities.ToList()
         };
 
         if (chatMessageContentPart is not null)
@@ -40,6 +44,10 @@ public class AzureAiResponse<T> where T: class
                 result.Result = jsonObject;
             }
         }
+        if (name is not null) {
+            result.NameLabel = name;
+        }
+        
         
         return result;
     }
@@ -64,6 +72,7 @@ public class AzureAiResponse<T> where T: class
         {
             Refusal = exception.Message,
             StatusCode = (HttpStatusCode)exception.Status,
+
         };
     }
 }
