@@ -17,9 +17,9 @@ public class WhenReviewingVacancies
         [Greedy] RecruitAiService sut)
     {
         // arrange
-        var spellcheckPrompt = new AzureAiClientPrompt(config.SpellingCheckPrompt.SystemPrompt, config.SpellingCheckPrompt.UserHeader, config.SpellingCheckPrompt.UserInstruction);
-        var discriminationPrompt = new AzureAiClientPrompt(config.DiscriminationPrompt.SystemPrompt, config.DiscriminationPrompt.UserHeader, config.DiscriminationPrompt.UserInstruction);
-        var contentEvaluationPrompt = new AzureAiClientPrompt(config.MissingContentPrompt.SystemPrompt, config.MissingContentPrompt.UserHeader, config.MissingContentPrompt.UserInstruction);
+        var spellcheckPrompt = new AzureAiClientPrompt(config.SpellingCheckPrompt.SystemPrompt, [config.SpellingCheckPrompt.UserHeader, config.SpellingCheckPrompt.UserInstruction], config.Temperature.SpellCheck);
+        var discriminationPrompt = new AzureAiClientPrompt(config.DiscriminationPrompt.SystemPrompt, [config.DiscriminationPrompt.UserHeader, config.DiscriminationPrompt.UserInstruction], config.Temperature.Discrimination);
+        var contentEvaluationPrompt = new AzureAiClientPrompt(config.MissingContentPrompt.SystemPrompt, [config.MissingContentPrompt.UserHeader, config.MissingContentPrompt.UserInstruction], config.Temperature.MissingContent);
         
         azureAiClient
             .Setup(x => x.PerformCheckAsync<Dictionary<string, string>>(It.IsAny<AzureAiClientPrompt>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<CancellationToken>()))
@@ -115,8 +115,8 @@ public class WhenReviewingVacancies
         var result = await sut.ReviewVacancyAsync(data, CancellationToken.None);
 
         // assert
-        result.SpellcheckResult.Result.Should().BeEquivalentTo(spellcheckResult);
-        result.DiscriminationResult.Result.Should().BeEquivalentTo(discriminationResult);
-        result.ContentEvaluationResult.Result.Should().BeEquivalentTo(scontentEvaluationResult);
+        result.SpellcheckResult!.Result.Should().BeEquivalentTo(spellcheckResult);
+        result.DiscriminationResult!.Result.Should().BeEquivalentTo(discriminationResult);
+        result.ContentEvaluationResult!.Result.Should().BeEquivalentTo(scontentEvaluationResult);
     }
 }

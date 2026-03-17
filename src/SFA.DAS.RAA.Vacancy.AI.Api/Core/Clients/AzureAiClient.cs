@@ -9,7 +9,7 @@ using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
 
-public record AzureAiClientPrompt(string SystemPrompt, params string[] UserPrompts);
+public record AzureAiClientPrompt(string SystemPrompt, string[] UserPrompts, float? Temperature = null);
 
 public interface IAzureAiClient
 {
@@ -27,14 +27,13 @@ public class AzureAiClient(VacancyAiConfiguration configuration) : IAzureAiClien
         ArgumentNullException.ThrowIfNull(items);
         
         List<ChatMessage> messages = [new SystemChatMessage(prompt.SystemPrompt)];
-        messages.AddRange(prompt.UserPrompts?.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => new UserChatMessage(x)).ToList() ?? []);
+        messages.AddRange(prompt.UserPrompts.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => new UserChatMessage(x)).ToList());
         messages.Add(new UserChatMessage(JsonSerializer.Serialize(items)));
 
         var uri = new Uri(configuration.LlmEndpointShort);
         var credential = new AzureKeyCredential(configuration.LlmKey);
         var clientOptions = new AzureOpenAIClientOptions
         {
-            //Transport = new HttpClientPipelineTransport(httpClient), // we _could_ customise the httpclient retry policy
             RetryPolicy = new ClientRetryPolicy(MaxRetryAttempts)
         };
         var openAiClient = new AzureOpenAIClient(uri, credential, clientOptions);
@@ -42,7 +41,12 @@ public class AzureAiClient(VacancyAiConfiguration configuration) : IAzureAiClien
 
         try
         {
-            var response = await gptClient.CompleteChatAsync(messages, new ChatCompletionOptions { ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat() }, cancellationToken);
+            var chatOptions = new ChatCompletionOptions 
+            {
+                ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat(),
+                Temperature = prompt.Temperature,
+            };
+            var response = await gptClient.CompleteChatAsync(messages, chatOptions, cancellationToken);
             return AzureAiResponse<TResult>.From(response);
         }
         catch (ClientResultException e)

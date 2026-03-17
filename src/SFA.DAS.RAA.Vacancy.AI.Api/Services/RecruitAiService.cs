@@ -34,9 +34,20 @@ public class RecruitAiService(
             ["ThingsToConsider"] = data.ThingsToConsider,
         };
 
-        var spellcheckPrompt = new AzureAiClientPrompt(configuration.SpellingCheckPrompt.SystemPrompt, configuration.SpellingCheckPrompt.UserHeader, configuration.SpellingCheckPrompt.UserInstruction);
-        var discriminationPrompt = new AzureAiClientPrompt(configuration.DiscriminationPrompt.SystemPrompt, configuration.DiscriminationPrompt.UserHeader, configuration.DiscriminationPrompt.UserInstruction);
-        var contentEvaluationPrompt = new AzureAiClientPrompt(configuration.MissingContentPrompt.SystemPrompt, configuration.MissingContentPrompt.UserHeader, configuration.MissingContentPrompt.UserInstruction);
+        var spellcheckPrompt = new AzureAiClientPrompt(
+            configuration.SpellingCheckPrompt.SystemPrompt,
+            [configuration.SpellingCheckPrompt.UserHeader, configuration.SpellingCheckPrompt.UserInstruction],
+            configuration.Temperature.SpellCheck);
+        
+        var discriminationPrompt = new AzureAiClientPrompt(
+            configuration.DiscriminationPrompt.SystemPrompt,
+            [configuration.DiscriminationPrompt.UserHeader, configuration.DiscriminationPrompt.UserInstruction],
+            configuration.Temperature.Discrimination);
+        
+        var contentEvaluationPrompt = new AzureAiClientPrompt(
+            configuration.MissingContentPrompt.SystemPrompt,
+            [configuration.MissingContentPrompt.UserHeader, configuration.MissingContentPrompt.UserInstruction],
+            configuration.Temperature.MissingContent);
         
         var spellcheckTask = azureAiClient.PerformCheckAsync<Dictionary<string, string>>(spellcheckPrompt, spellcheckFields, cancellationToken);
         var discriminationTask = azureAiClient.PerformCheckAsync<Dictionary<string, string>>(discriminationPrompt, fieldsToCheck, cancellationToken);

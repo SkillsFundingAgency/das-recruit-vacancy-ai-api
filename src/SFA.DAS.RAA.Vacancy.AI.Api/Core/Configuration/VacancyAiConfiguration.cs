@@ -7,6 +7,8 @@ public class VacancyAiConfiguration
     public Prompt DiscriminationPrompt { get; set; }
     public Prompt MissingContentPrompt { get; set; }
     public Prompt SpellingCheckPrompt { get; set; }
+    
+    public TemperatureSettings Temperature { get; set; }
 }
 
 public class Prompt
@@ -14,4 +16,11 @@ public class Prompt
     public string SystemPrompt { get; set; }
     public string UserHeader { get; set; }
     public string UserInstruction { get; set; }
+}
+
+public class TemperatureSettings
+{
+    public float Discrimination { get; set; } = 1.0f;
+    public float MissingContent { get; set; } = 1.0f;
+    public float SpellCheck { get; set; } = 1.0f;
 }
