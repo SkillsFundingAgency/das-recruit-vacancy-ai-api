@@ -109,6 +109,13 @@ public class WhenAssessingAiResponse
         actual.manualReviewRequired.Should().BeTrue();
         actual.status.Should().Be(AiReviewStatus.Failed);
         actual.errors.Should().HaveCount(3);
+        actual.errors.Should().AllSatisfy(x =>
+        {
+            var jsonError = x as JsonFieldsMismatchReviewError;
+            jsonError.Should().NotBeNull();
+            jsonError.MissingFields.Should().HaveCount(1);
+            jsonError.MissingFields.Should().BeEquivalentTo("field2");
+        });
     }
     
     [Test, MoqAutoData]
@@ -135,6 +142,13 @@ public class WhenAssessingAiResponse
         actual.manualReviewRequired.Should().BeTrue();
         actual.status.Should().Be(AiReviewStatus.Failed);
         actual.errors.Should().HaveCount(3);
+        actual.errors.Should().AllSatisfy(x =>
+        {
+            var jsonError = x as JsonFieldsMismatchReviewError;
+            jsonError.Should().NotBeNull();
+            jsonError.AdditionalFields.Should().HaveCount(1);
+            jsonError.AdditionalFields.Should().BeEquivalentTo("field3");
+        });
     }
     
     [Test, MoqAutoData]

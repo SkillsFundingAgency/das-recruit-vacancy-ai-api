@@ -13,7 +13,7 @@ public class AzureAiResponse<T> where T: class
     public T? Result { get; set; }
     public string? RawResult { get; set; }
 
-    public static AzureAiResponse<T> From(ClientResult<ChatCompletion> clientResult)
+    public static AzureAiResponse<T> From(ClientResult<ChatCompletion?> clientResult)
     {
         var rawResponse = clientResult.GetRawResponse();
         var chatCompletion = clientResult.Value;
@@ -24,7 +24,7 @@ public class AzureAiResponse<T> where T: class
                 StatusCode = (HttpStatusCode)rawResponse.Status,
             };
         }
-        
+
         var chatMessageContentPart = chatCompletion.Content.FirstOrDefault();
         var result = new AzureAiResponse<T>
         {

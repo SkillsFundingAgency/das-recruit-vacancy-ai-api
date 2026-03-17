@@ -1,8 +1,7 @@
-﻿namespace SFA.DAS.RAA.Vacancy.AI.Api.Domain;
+﻿using System.Text.Json.Serialization;
 
-public class ReviewError(ReviewCategory category, string description, double score)
-{
-    public ReviewCategory Category { get; } = category;
-    public string Description { get; } = description;
-    public double Score { get; } = score;
-}
+namespace SFA.DAS.RAA.Vacancy.AI.Api.Domain;
+
+[JsonDerivedType(typeof(ReviewError), typeDiscriminator: "base")]
+[JsonDerivedType(typeof(JsonFieldsMismatchReviewError), typeDiscriminator: "json-fields-mismatch")]
+public record ReviewError(ReviewCategory Category, string Description, double Score);

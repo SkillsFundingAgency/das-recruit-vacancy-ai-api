@@ -102,7 +102,7 @@ public class AiReviewResultChecker(IRandomNumberGenerator generator): IAiReviewR
     {
         if (!status?.IsSuccessStatusCode() ?? false)
         {
-            error = new ReviewError(category, "HttpStatus code does not indicate success", 1);
+            error = new ReviewError(category, $"HttpStatus code '{(int)status}' does not indicate success", 1);
             return true;
         }
         
@@ -118,18 +118,20 @@ public class AiReviewResultChecker(IRandomNumberGenerator generator): IAiReviewR
             return true;
         }
 
-        if (VerifyFields(result, fields))
+        if (!VerifyFields(result, fields))
         {
-            error = null;
-            return false;
+            var missingFields = fields.Keys.Except(result.Keys).ToList();
+            var additionalFields = result.Keys.Except(fields.Keys).ToList();
+            error = new JsonFieldsMismatchReviewError(category, "There was a mismatch between the provided and returned fields", 1, additionalFields, missingFields);
+            return true;    
         }
         
-        error = new ReviewError(category, "There was a mismatch between the provided and returned fields", 1);
-        return true;
+        error = null;
+        return false;
     }
 
-    private static bool VerifyFields<T>(Dictionary<string, T?>? llmResult, Dictionary<string, string> fields)
+    private static bool VerifyFields<T>(Dictionary<string, T?> llmResult, Dictionary<string, string> fields)
     {
-        return llmResult is not null && llmResult.Count == fields.Count && llmResult.Keys.All(fields.ContainsKey);
+        return llmResult.Count == fields.Count && llmResult.Keys.All(fields.ContainsKey);
     }
 }
