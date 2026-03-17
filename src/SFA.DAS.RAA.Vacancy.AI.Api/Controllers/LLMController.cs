@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core;
 using SFA.DAS.RAA.Vacancy.AI.Api.Data;
-using SFA.DAS.RAA.Vacancy.AI.Api.Data.Entities;
+using SFA.DAS.RAA.Vacancy.AI.Api.Domain;
 using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
 using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services;
 using SFA.DAS.RAA.Vacancy.AI.Api.Services;
@@ -15,7 +15,7 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers;
 [Route("api/[controller]")]
 public class LlmController : ControllerBase
 {
-    private readonly static JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
@@ -36,30 +36,32 @@ public class LlmController : ControllerBase
         [FromServices] IRecruitAiService aiService,
         [FromServices] IAiReviewResultChecker aiReviewResultChecker,
         [FromServices] IAiDataContext dataContext,
+        [FromServices] IEventsService eventsService,
         [FromRoute] Guid vacancyReviewId,
         [FromBody, Required] InputObject? data,
         CancellationToken cancellationToken)
     {
-        var review = await aiService.ReviewVacancyAsync(data!, cancellationToken);
-        var flagForReview = aiReviewResultChecker.FlagForReview(review, out var reviewStatus);
         var aiVacancyReview = await dataContext.AiVacancyReviewEntities.FirstOrDefaultAsync(x => x.VacancyReviewId == vacancyReviewId, cancellationToken);
         if (aiVacancyReview is null)
-        {   // we should never hit this, but just in case
-            aiVacancyReview = new AiVacancyReviewEntity()
-            {
-                VacancyId = Guid.Parse(data!.VacancyId!),
-                VacancyReviewId = vacancyReviewId,
-            };
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (aiVacancyReview.Status is AiReviewStatus.Pending)
+        {
+            // perform the review
+            var review = await aiService.ReviewVacancyAsync(data!, cancellationToken);
+            var flagForReview = aiReviewResultChecker.FlagForReview(review, out var reviewStatus);
             
-            // save now to avoid update date before created date
+            // update the entity
+            aiVacancyReview.Output = JsonSerializer.Serialize(review, JsonOptions);
+            aiVacancyReview.ManualReviewRequired = flagForReview;
+            aiVacancyReview.Status = reviewStatus;
+            aiVacancyReview.UpdatedDate = DateTime.Now;
             await dataContext.SaveChangesAsync(cancellationToken);
         }
 
-        aiVacancyReview.Output = JsonSerializer.Serialize(review, JsonOptions);
-        aiVacancyReview.ManualReviewRequired = flagForReview;
-        aiVacancyReview.Status = reviewStatus;
-        aiVacancyReview.UpdatedDate = DateTime.Now;
-        await dataContext.SaveChangesAsync(cancellationToken);
+        await eventsService.PublishAiVacancyReviewCompletedEventAsync(aiVacancyReview);
         return TypedResults.Ok();
     }
 }

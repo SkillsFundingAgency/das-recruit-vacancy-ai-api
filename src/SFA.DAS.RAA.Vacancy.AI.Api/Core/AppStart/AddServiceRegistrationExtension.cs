@@ -22,6 +22,7 @@ public static class AddServiceRegistrationExtension
         services.AddScoped<IAiReviewResultChecker, AiReviewResultChecker>();
         services.AddScoped<IAzureAiClient, AzureAiClient>();
         services.AddScoped<IRecruitAiService, RecruitAiService>();
+        services.AddScoped<IEventsService, EventsService>();
     }
 
     public static void ConfigureHealthChecks(this IServiceCollection services)
@@ -39,6 +40,8 @@ public static class AddServiceRegistrationExtension
         services.AddSingleton(cfg => cfg.GetService<IOptions<AzureActiveDirectoryConfiguration>>()!.Value);
         services.Configure<VacancyAiConfiguration>(configuration.GetSection(nameof(VacancyAiConfiguration)));
         services.AddSingleton(cfg => cfg.GetService<IOptions<VacancyAiConfiguration>>()!.Value);
+        services.Configure<ConnectionStrings>(configuration.GetSection(nameof(ConnectionStrings)));
+        services.AddSingleton(cfg => cfg.GetService<IOptions<ConnectionStrings>>()!.Value);
     }
     
     public static void AddDatabaseRegistration(
