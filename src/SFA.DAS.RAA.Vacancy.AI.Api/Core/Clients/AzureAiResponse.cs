@@ -51,7 +51,7 @@ public class AzureAiResponse<T> where T: class
             result = JsonSerializer.Deserialize<T>(json);
             return result is not null;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             result = null;
             return false;

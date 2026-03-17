@@ -51,11 +51,10 @@ public class WhenGettingAzureAiResponse
     {
         // arrange
         var pipelineResponse = new MockPipelineResponse();
-        //var chatCompletion = OpenAIChatModelFactory.ChatCompletion(role: ChatMessageRole.User, refusal: "some rejection text");
         var clientResult = ClientResult.FromOptionalValue<ChatCompletion>(null, pipelineResponse);
         
         // act
-        var actual = AzureAiResponse<string>.From(clientResult);
+        var actual = AzureAiResponse<string>.From(clientResult!);
 
         // assert
         actual.StatusCode.Should().Be((HttpStatusCode)pipelineResponse.Status);
