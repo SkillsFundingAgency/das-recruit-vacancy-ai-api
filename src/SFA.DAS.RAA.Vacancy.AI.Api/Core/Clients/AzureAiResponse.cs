@@ -15,7 +15,7 @@ public class AzureAiResponse<T> where T: class
     public List<OpenAI.Chat.ChatTokenLogProbabilityDetails> LogProbabilties { get; set; } = null;
     public string? NameLabel { get; set; }
 
-    public static AzureAiResponse<T> From(ClientResult<ChatCompletion> clientResult, string name=null)
+    public static AzureAiResponse<T> From(ClientResult<ChatCompletion?> clientResult)
     {
         var rawResponse = clientResult.GetRawResponse();
         var chatCompletion = clientResult.Value;
@@ -26,7 +26,7 @@ public class AzureAiResponse<T> where T: class
                 StatusCode = (HttpStatusCode)rawResponse.Status,
             };
         }
-        
+
         var chatMessageContentPart = chatCompletion.Content.FirstOrDefault();
         var logproba = clientResult.Value.ContentTokenLogProbabilities;
         var result = new AzureAiResponse<T>
@@ -57,9 +57,9 @@ public class AzureAiResponse<T> where T: class
         try
         {
             result = JsonSerializer.Deserialize<T>(json);
-            return true;
+            return result is not null;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             result = null;
             return false;

@@ -11,4 +11,5 @@ public class AiVacancyReviewDto
     public AiReviewStatus Status { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdatedDate { get; set; }
+    public double? Score { get; set; }
 }

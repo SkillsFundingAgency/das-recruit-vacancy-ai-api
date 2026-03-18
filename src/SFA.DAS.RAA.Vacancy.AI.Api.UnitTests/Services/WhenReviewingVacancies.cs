@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
-using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
+using SFA.DAS.RAA.Vacancy.AI.Api.Models;
 using SFA.DAS.RAA.Vacancy.AI.Api.Services;
 using SFA.DAS.RAA.Vacancy.AI.Api.Testing;
 
@@ -11,15 +11,15 @@ public class WhenReviewingVacancies
 {
     [Test, MoqAutoData]
     public async Task Then_The_Prompts_Are_Passed_Correctly(
-        InputObject data,
+        PostPerformReviewDto data,
         [Frozen] VacancyAiConfiguration config,
         [Frozen] Mock<IAzureAiClient> azureAiClient,
         [Greedy] RecruitAiService sut)
     {
         // arrange
-        var spellcheckPrompt = new AzureAiClientPrompt(config.SpellingCheckPrompt.SystemPrompt, config.SpellingCheckPrompt.UserHeader, config.SpellingCheckPrompt.UserInstruction);
-        var discriminationPrompt = new AzureAiClientPrompt(config.DiscriminationPrompt.SystemPrompt, config.DiscriminationPrompt.UserHeader, config.DiscriminationPrompt.UserInstruction);
-        var contentEvaluationPrompt = new AzureAiClientPrompt(config.MissingContentPrompt.SystemPrompt, config.MissingContentPrompt.UserHeader, config.MissingContentPrompt.UserInstruction);
+        var spellcheckPrompt = new AzureAiClientPrompt(config.SpellingCheckPrompt.SystemPrompt, [config.SpellingCheckPrompt.UserHeader, config.SpellingCheckPrompt.UserInstruction], config.Temperature.SpellCheck);
+        var discriminationPrompt = new AzureAiClientPrompt(config.DiscriminationPrompt.SystemPrompt, [config.DiscriminationPrompt.UserHeader, config.DiscriminationPrompt.UserInstruction], config.Temperature.Discrimination);
+        var contentEvaluationPrompt = new AzureAiClientPrompt(config.MissingContentPrompt.SystemPrompt, [config.MissingContentPrompt.UserHeader, config.MissingContentPrompt.UserInstruction], config.Temperature.MissingContent);
         
         azureAiClient
             .Setup(x => x.PerformCheckAsync<Dictionary<string, string>>(It.IsAny<AzureAiClientPrompt>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<CancellationToken>()))
@@ -41,29 +41,32 @@ public class WhenReviewingVacancies
     
     [Test, MoqAutoData]
     public async Task Then_The_Data_Is_Passed_Correctly(
-        InputObject data,
+        PostPerformReviewDto data,
         [Frozen] Mock<IAzureAiClient> azureAiClient,
         [Greedy] RecruitAiService sut)
     {
         // arrange
-        var spellcheckFields = new Dictionary<string, string>
-        {
-            ["AdditionalTrainingDescription"] = data.AdditionalTrainingDescription,
-            ["Description"] = data.Description,
-            ["EmployerDescription"] = data.EmployerDescription,
-            ["Qualifications"] = data.Qualifications,
-            ["ShortDescription"] = data.ShortDescription,
-            ["Skills"] = data.Skills,
-            ["Title"] = data.Title,
-            ["TrainingDescription"] = data.TrainingDescription,
-        };
-
-        var fieldsToCheck = new Dictionary<string, string>(spellcheckFields)
-        {
-            ["TrainingProgrammeTitle"] = data.TrainingProgrammeTitle,
-            ["TrainingProgrammeLevel"] = data.TrainingProgrammeLevel,
-            ["ThingsToConsider"] = data.ThingsToConsider,
-        };
+        var fields = new Dictionary<string, string?>
+            {
+                ["Title"] = data.Title,
+                ["ShortDescription"] = data.ShortDescription,
+                ["Description"] = data.Description,
+                ["EmployerDescription"] = data.EmployerDescription,
+                ["ThingsToConsider"] = data.ThingsToConsider,
+                ["TrainingDescription"] = data.TrainingDescription,
+                ["AdditionalTrainingDescription"] = data.AdditionalTrainingDescription,
+                ["TrainingProgrammeTitle"] = data.TrainingProgrammeTitle,
+                ["TrainingProgrammeLevel"] = data.TrainingProgrammeLevel,
+                ["OutcomeDescription"] = data.OutcomeDescription,
+                ["ApplicationInstructions"] = data.ApplicationInstructions,
+                ["AdditionalQuestion1"] = data.AdditionalQuestion1,
+                ["AdditionalQuestion2"] = data.AdditionalQuestion2,
+                ["WageAdditionalInformation"] = data.WageAdditionalInformation,
+                ["WageCompanyBenefitsInformation"] = data.WageCompanyBenefitsInformation,
+                ["WageWorkingWeekDescription"] = data.WageWorkingWeekDescription,
+            }
+            .Where(x => !string.IsNullOrWhiteSpace(x.Value))
+            .ToDictionary(x => x.Key, x => x.Value!);
         
         azureAiClient
             .Setup(x => x.PerformCheckAsync<Dictionary<string, string>>(It.IsAny<AzureAiClientPrompt>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<CancellationToken>()))
@@ -78,13 +81,12 @@ public class WhenReviewingVacancies
         await sut.ReviewVacancyAsync(data, CancellationToken.None);
 
         // assert
-        azureAiClient.Verify(x => x.PerformCheckAsync<Dictionary<string, string>>(It.IsAny<AzureAiClientPrompt>(), ItIs.EquivalentTo(spellcheckFields), It.IsAny<CancellationToken>()), Times.Once());
-        azureAiClient.Verify(x => x.PerformCheckAsync<Dictionary<string, string>>(It.IsAny<AzureAiClientPrompt>(), ItIs.EquivalentTo(fieldsToCheck), It.IsAny<CancellationToken>()), Times.Exactly(2));
+        azureAiClient.Verify(x => x.PerformCheckAsync<Dictionary<string, string>>(It.IsAny<AzureAiClientPrompt>(), ItIs.EquivalentTo(fields), It.IsAny<CancellationToken>()), Times.Exactly(3));
     }
     
     [Test, MoqAutoData]
     public async Task Then_The_Review_Is_Returned(
-        InputObject data,
+        PostPerformReviewDto data,
         [Frozen] Mock<IAzureAiClient> azureAiClient,
         [Greedy] RecruitAiService sut)
     {
@@ -115,8 +117,8 @@ public class WhenReviewingVacancies
         var result = await sut.ReviewVacancyAsync(data, CancellationToken.None);
 
         // assert
-        result.SpellcheckResult.Result.Should().BeEquivalentTo(spellcheckResult);
-        result.DiscriminationResult.Result.Should().BeEquivalentTo(discriminationResult);
-        result.ContentEvaluationResult.Result.Should().BeEquivalentTo(scontentEvaluationResult);
+        result.SpellcheckResult!.Result.Should().BeEquivalentTo(spellcheckResult);
+        result.DiscriminationResult!.Result.Should().BeEquivalentTo(discriminationResult);
+        result.ContentEvaluationResult!.Result.Should().BeEquivalentTo(scontentEvaluationResult);
     }
 }

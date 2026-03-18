@@ -66,11 +66,18 @@ public class WhenPatchingAiVacanyReview: BaseFixture
     public async Task Then_The_AiVacancyReview_Is_Patched()
     {
         var items = Fixture.CreateMany<AiVacancyReviewEntity>(10).ToList();
+        
         var targetItem = items[4];
+        targetItem.Status = AiReviewStatus.Pending;
+        targetItem.ManualReviewRequired = false;
+        targetItem.UpdatedDate = null;
+        targetItem.Output = null;
+        
         var expectedEntity = new AiVacancyReviewEntity
         {
             Output = "foo",
-            Status = AiReviewStatus.Passed    
+            Status = AiReviewStatus.Passed,
+            ManualReviewRequired = true,
         };
         
         Server.DataContext
@@ -80,13 +87,17 @@ public class WhenPatchingAiVacanyReview: BaseFixture
         var patchDocument = new JsonPatchDocument<PatchableAiVacancyReviewDto>();
         patchDocument.Add(x => x.Output, expectedEntity.Output);
         patchDocument.Add(x => x.Status, expectedEntity.Status);
+        patchDocument.Add(x => x.ManualReviewRequired, expectedEntity.ManualReviewRequired);
         
         // act
         var response = await Client.PatchAsync($"{RouteNames.AiVacancyReview}/{targetItem.VacancyReviewId}", patchDocument);
 
         // assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        Server.DataContext.Verify(x => x.SetValues(targetItem, ItIs.EquivalentTo(expectedEntity)), Times.Once());
+        targetItem.Output.Should().Be(expectedEntity.Output);
+        targetItem.Status.Should().Be(expectedEntity.Status);
+        targetItem.ManualReviewRequired.Should().Be(expectedEntity.ManualReviewRequired);
+        targetItem.UpdatedDate.Should().BeCloseTo(DateTime.Now, TimeSpan.FromSeconds(5));
         Server.DataContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

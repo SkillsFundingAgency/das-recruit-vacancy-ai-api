@@ -9,7 +9,7 @@ using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
 
-public record AzureAiClientPrompt(string SystemPrompt, params string[] UserPrompts);
+public record AzureAiClientPrompt(string SystemPrompt, string[] UserPrompts, float? Temperature = null);
 
 public interface IAzureAiClient
 {
@@ -27,14 +27,13 @@ public class AzureAiClient(VacancyAiConfiguration configuration) : IAzureAiClien
         ArgumentNullException.ThrowIfNull(items);
         
         List<ChatMessage> messages = [new SystemChatMessage(prompt.SystemPrompt)];
-        messages.AddRange(prompt.UserPrompts?.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => new UserChatMessage(x)).ToList() ?? []);
+        messages.AddRange(prompt.UserPrompts.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => new UserChatMessage(x)).ToList());
         messages.Add(new UserChatMessage(JsonSerializer.Serialize(items)));
 
         var uri = new Uri(configuration.LlmEndpointShort);
         var credential = new AzureKeyCredential(configuration.LlmKey);
         var clientOptions = new AzureOpenAIClientOptions
         {
-            //Transport = new HttpClientPipelineTransport(httpClient), // we _could_ customise the httpclient retry policy
             RetryPolicy = new ClientRetryPolicy(MaxRetryAttempts)
         };
         var openAiClient = new AzureOpenAIClient(uri, credential, clientOptions);
@@ -42,27 +41,12 @@ public class AzureAiClient(VacancyAiConfiguration configuration) : IAzureAiClien
 
         try
         {
-            var response = await gptClient.CompleteChatAsync(messages, new ChatCompletionOptions { 
+            var chatOptions = new ChatCompletionOptions 
+            {
                 ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat(),
-                // Log Probabilities
-                IncludeLogProbabilities=true,
-                TopLogProbabilityCount=2,
-            }, cancellationToken);
-
-            var LogProbs = response.Value.ContentTokenLogProbabilities;
-            Console.WriteLine("TEST");
-            for (int i = 0; i < LogProbs.ToList().Count();i++){
-                var list_top_tokens = LogProbs[i].TopLogProbabilities;
-                for (int j = 0; j < list_top_tokens.Count();j++) {
-                    var tok = list_top_tokens[j].Token;
-                    var prob = list_top_tokens[j].LogProbability;
-                    Console.WriteLine("Token " + i.ToString() +" ( ) "+j.ToString()+" : " + tok.ToString() + " Prob: " + prob.ToString());
-                };
+                Temperature = prompt.Temperature,
             };
-            
-            
-            //Console.WriteLine(LogProbs.ToString());
-
+            var response = await gptClient.CompleteChatAsync(messages, chatOptions, cancellationToken);
             return AzureAiResponse<TResult>.From(response);
         }
         catch (ClientResultException e)

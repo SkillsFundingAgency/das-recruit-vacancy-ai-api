@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using SFA.DAS.RAA.Vacancy.AI.Api.Core.NServiceBus;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api;
 
@@ -13,6 +14,7 @@ public class Program
     private static IHostBuilder CreateHostBuilder(string[] args)
     {
         return Host.CreateDefaultBuilder(args)
+            .UseServiceProviderFactory(new NServiceBusServiceProviderFactory())
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();

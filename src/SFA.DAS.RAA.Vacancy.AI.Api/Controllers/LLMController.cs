@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SFA.DAS.RAA.Vacancy.AI.Api.Core;
 using SFA.DAS.RAA.Vacancy.AI.Api.Data;
-using SFA.DAS.RAA.Vacancy.AI.Api.Data.Entities;
-using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
-using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services;
+using SFA.DAS.RAA.Vacancy.AI.Api.Domain;
+using SFA.DAS.RAA.Vacancy.AI.Api.Models;
 using SFA.DAS.RAA.Vacancy.AI.Api.Services;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.InteropServices.Marshalling;
@@ -16,48 +14,42 @@ namespace SFA.DAS.RAA.Vacancy.AI.Api.Controllers;
 [Route("api/[controller]")]
 public class LlmController : ControllerBase
 {
-    private readonly static JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
     
-    [HttpPost(Name = "RunLLM")]
-    [ProducesResponseType<AICheckReturnResultObject>(StatusCodes.Status200OK)]
-    public async Task<IResult> RunLLM(
-        [FromServices] ILLMExec llm,
-        [FromBody] InputObject inputvacancy)
-    {
-        var llmoutput= await llm.ExecLLM(inputvacancy);
-        return TypedResults.Ok(llmoutput);
-    }
-    
     [HttpPost, Route("vacancyReview/{vacancyReviewId:guid}/review")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<AILLMResultObject>(StatusCodes.Status200OK)]
     public async Task<IResult> PerformReview(
         [FromServices] IRecruitAiService aiService,
-        [FromServices] IAiReviewResultChecker aiReviewResultChecker,
         [FromServices] IAiDataContext dataContext,
+        [FromServices] IEventsService eventsService,
         [FromRoute] Guid vacancyReviewId,
-        [FromBody, Required] InputObject? data,
+        [FromBody, Required] PostPerformReviewDto? data,
         CancellationToken cancellationToken)
     {
-        var review = await aiService.ReviewVacancyAsync(data!, cancellationToken);
-        var flagForReview = aiReviewResultChecker.FlagForReview(review, out var reviewStatus);
         var aiVacancyReview = await dataContext.AiVacancyReviewEntities.FirstOrDefaultAsync(x => x.VacancyReviewId == vacancyReviewId, cancellationToken);
         if (aiVacancyReview is null)
-        {   // we should never hit this, but just in case
-            aiVacancyReview = new AiVacancyReviewEntity()
-            {
-                VacancyId = Guid.Parse(data!.VacancyId!),
-                VacancyReviewId = vacancyReviewId,
-            };
-            
-            // save now to avoid update date before created date
-            await dataContext.SaveChangesAsync(cancellationToken);
+        {
+            return TypedResults.NotFound();
         }
 
+        if (aiVacancyReview.Status is not AiReviewStatus.Pending)
+        {
+            // ignore anything that isn't in the pending state
+            return TypedResults.Ok();
+        }
+        
+        // perform the review
+        var review = await aiService.ReviewVacancyAsync(data!, cancellationToken);
 
+        // update the entity
         aiVacancyReview.Output = JsonSerializer.Serialize(review, JsonOptions);
+        aiVacancyReview.ManualReviewRequired = review.ManualReviewRequired;
+        aiVacancyReview.Status = review.Status;
         Console.WriteLine("Matt's Temp debug");
         Console.WriteLine(review.ToString());
         Console.WriteLine("*************************");
@@ -66,7 +58,11 @@ public class LlmController : ControllerBase
         aiVacancyReview.ManualReviewRequired = flagForReview;
         aiVacancyReview.Status = reviewStatus;
         aiVacancyReview.UpdatedDate = DateTime.Now;
+        aiVacancyReview.Score = review.Errors?.Sum(x => x.Score) ?? 0;
         await dataContext.SaveChangesAsync(cancellationToken);
+            
+        await eventsService.PublishAiVacancyReviewCompletedEventAsync(aiVacancyReview);
+        return TypedResults.Ok();
 
         AILLMResultObject output = new AILLMResultObject();
 
