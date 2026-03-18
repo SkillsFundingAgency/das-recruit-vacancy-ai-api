@@ -83,9 +83,11 @@ public class AzureAIClientSpellcheckVerifier(VacancyAiConfiguration configuratio
     private const int MaxRetryAttempts = 4;
     public async Task<AzureAiResponse<TResult>> PerformCustomSpellcheck<TResult>(AzureAiClientPrompt prompt, string field, string checkname, CancellationToken cancellationToken) where TResult : class
     {
+
         ArgumentNullException.ThrowIfNull(prompt);
         ArgumentNullException.ThrowIfNull(field);
-        List<ChatMessage> messages = [new SystemChatMessage(prompt.SystemPrompt)];        
+        List<ChatMessage> messages = [new SystemChatMessage(prompt.SystemPrompt)];
+        messages.AddRange(prompt.UserPrompts?.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => new UserChatMessage(x)).ToList() ?? []);
         messages.Add(new UserChatMessage(field));
 
         var uri = new Uri(configuration.LlmEndpointShort);
@@ -105,6 +107,7 @@ public class AzureAIClientSpellcheckVerifier(VacancyAiConfiguration configuratio
                 // Log Probabilities
                 IncludeLogProbabilities = true,
                 TopLogProbabilityCount = 5,
+                Temperature=0.7F,
             }, cancellationToken);
 
             var LogProbs = response.Value.ContentTokenLogProbabilities;
