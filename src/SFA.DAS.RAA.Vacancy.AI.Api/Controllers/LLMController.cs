@@ -59,7 +59,7 @@ public class LlmController : ControllerBase
         aiVacancyReview.Status = reviewStatus;
         aiVacancyReview.UpdatedDate = DateTime.Now;
         aiVacancyReview.Score = review.Errors?.Sum(x => x.Score) ?? 0;
-        await dataContext.SaveChangesAsync(cancellationToken);
+        //await dataContext.SaveChangesAsync(cancellationToken);
             
         await eventsService.PublishAiVacancyReviewCompletedEventAsync(aiVacancyReview);
         return TypedResults.Ok();

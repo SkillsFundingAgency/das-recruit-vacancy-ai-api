@@ -216,7 +216,7 @@ public class RecruitAiService(
 
 
 
-        return new AiReviewResultV1
+        //return new AiReviewResultV1;
         return CreateResponse(fields, spellcheckTask.Result, discriminationTask.Result, contentEvaluationTask.Result);
     }
 
@@ -237,9 +237,6 @@ public class RecruitAiService(
             DiscriminationResult = discriminationResult,
             ContentEvaluationResult = contentEvaluationResult,
             Errors = errors,
-            SpellcheckResult = spellcheckTask.Result,
-            DiscriminationResult = discriminationTask.Result,
-            ContentEvaluationResult = contentEvaluationTask.Result,
             RetrySpellChecks=List_SpellcheckResults,
             //ContentEvalResult_Manual=contentEvaluationTask_MattPromptEngineered.Result,
             //ContentEvalResult_Copilot=contentEvaluationTask_CopilotPromptEngineered.Result,
