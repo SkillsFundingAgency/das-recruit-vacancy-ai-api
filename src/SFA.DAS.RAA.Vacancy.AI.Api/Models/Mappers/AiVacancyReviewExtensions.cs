@@ -16,6 +16,7 @@ internal static class AiVacancyReviewExtensions
             Output = entity.Output,
             CreatedDate = entity.CreatedDate,
             UpdatedDate = entity.UpdatedDate,
+            Score = entity.Score,
         };
     }
     
@@ -39,6 +40,7 @@ internal static class AiVacancyReviewExtensions
             VacancyId = dto.VacancyId!.Value,
             ManualReviewRequired = dto.ManualReviewRequired,
             Output = dto.Output,
+            Score = dto.Score,
             Status = dto.Status!.Value,
         };
     }

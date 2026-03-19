@@ -1,54 +1,84 @@
-﻿using SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
+﻿using SFA.DAS.RAA.Vacancy.AI.Api.Core;
+using SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
-using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Models;
+using SFA.DAS.RAA.Vacancy.AI.Api.Models;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Services;
 
 public interface IRecruitAiService
 {
-    Task<AiReviewResultV1> ReviewVacancyAsync(InputObject data, CancellationToken cancellationToken);
+    Task<VacancyAiReviewResponse> ReviewVacancyAsync(PostPerformReviewDto data, CancellationToken cancellationToken);
 }
 
 public class RecruitAiService(
     VacancyAiConfiguration configuration,
+    IAiReviewResultChecker checker,
     IAzureAiClient azureAiClient): IRecruitAiService
 {
-    public async Task<AiReviewResultV1> ReviewVacancyAsync(InputObject data, CancellationToken cancellationToken)
+    public async Task<VacancyAiReviewResponse> ReviewVacancyAsync(PostPerformReviewDto data, CancellationToken cancellationToken)
     {
-        var spellcheckFields = new Dictionary<string, string>
-        {
-            ["AdditionalTrainingDescription"] = data.AdditionalTrainingDescription,
-            ["Description"] = data.Description,
-            ["EmployerDescription"] = data.EmployerDescription,
-            ["Qualifications"] = data.Qualifications,
-            ["ShortDescription"] = data.ShortDescription,
-            ["Skills"] = data.Skills,
-            ["Title"] = data.Title,
-            ["TrainingDescription"] = data.TrainingDescription,
-        };
+        var fields = new Dictionary<string, string?>
+            {
+                ["Title"] = data.Title,
+                ["ShortDescription"] = data.ShortDescription,
+                ["Description"] = data.Description,
+                ["EmployerDescription"] = data.EmployerDescription,
+                ["ThingsToConsider"] = data.ThingsToConsider,
+                ["TrainingDescription"] = data.TrainingDescription,
+                ["AdditionalTrainingDescription"] = data.AdditionalTrainingDescription,
+                ["TrainingProgrammeTitle"] = data.TrainingProgrammeTitle,
+                ["TrainingProgrammeLevel"] = data.TrainingProgrammeLevel,
+                ["OutcomeDescription"] = data.OutcomeDescription,
+                ["ApplicationInstructions"] = data.ApplicationInstructions,
+                ["AdditionalQuestion1"] = data.AdditionalQuestion1,
+                ["AdditionalQuestion2"] = data.AdditionalQuestion2,
+                ["WageAdditionalInformation"] = data.WageAdditionalInformation,
+                ["WageCompanyBenefitsInformation"] = data.WageCompanyBenefitsInformation,
+                ["WageWorkingWeekDescription"] = data.WageWorkingWeekDescription,
+            }
+            .Where(x => !string.IsNullOrWhiteSpace(x.Value))
+            .ToDictionary(x => x.Key, x => x.Value!);
 
-        var fieldsToCheck = new Dictionary<string, string>(spellcheckFields)
-        {
-            ["TrainingProgrammeTitle"] = data.TrainingProgrammeTitle,
-            ["TrainingProgrammeLevel"] = data.TrainingProgrammeLevel,
-            ["ThingsToConsider"] = data.ThingsToConsider,
-        };
-
-        var spellcheckPrompt = new AzureAiClientPrompt(configuration.SpellingCheckPrompt.SystemPrompt, configuration.SpellingCheckPrompt.UserHeader, configuration.SpellingCheckPrompt.UserInstruction);
-        var discriminationPrompt = new AzureAiClientPrompt(configuration.DiscriminationPrompt.SystemPrompt, configuration.DiscriminationPrompt.UserHeader, configuration.DiscriminationPrompt.UserInstruction);
-        var contentEvaluationPrompt = new AzureAiClientPrompt(configuration.MissingContentPrompt.SystemPrompt, configuration.MissingContentPrompt.UserHeader, configuration.MissingContentPrompt.UserInstruction);
+        var spellcheckPrompt = new AzureAiClientPrompt(
+            configuration.SpellingCheckPrompt.SystemPrompt,
+            [configuration.SpellingCheckPrompt.UserHeader, configuration.SpellingCheckPrompt.UserInstruction],
+            configuration.Temperature.SpellCheck);
         
-        var spellcheckTask = azureAiClient.PerformCheckAsync<Dictionary<string, string>>(spellcheckPrompt, spellcheckFields, cancellationToken);
-        var discriminationTask = azureAiClient.PerformCheckAsync<Dictionary<string, string>>(discriminationPrompt, fieldsToCheck, cancellationToken);
-        var contentEvaluationTask = azureAiClient.PerformCheckAsync<Dictionary<string, string>>(contentEvaluationPrompt, fieldsToCheck, cancellationToken);
+        var discriminationPrompt = new AzureAiClientPrompt(
+            configuration.DiscriminationPrompt.SystemPrompt,
+            [configuration.DiscriminationPrompt.UserHeader, configuration.DiscriminationPrompt.UserInstruction],
+            configuration.Temperature.Discrimination);
+        
+        var contentEvaluationPrompt = new AzureAiClientPrompt(
+            configuration.MissingContentPrompt.SystemPrompt,
+            [configuration.MissingContentPrompt.UserHeader, configuration.MissingContentPrompt.UserInstruction],
+            configuration.Temperature.MissingContent);
+        
+        var spellcheckTask = azureAiClient.PerformCheckAsync<Dictionary<string, string?>>(spellcheckPrompt, fields, cancellationToken);
+        var discriminationTask = azureAiClient.PerformCheckAsync<Dictionary<string, string?>>(discriminationPrompt, fields, cancellationToken);
+        var contentEvaluationTask = azureAiClient.PerformCheckAsync<Dictionary<string, string?>>(contentEvaluationPrompt, fields, cancellationToken);
         
         await Task.WhenAll(spellcheckTask, discriminationTask, contentEvaluationTask);
+        return CreateResponse(fields, spellcheckTask.Result, discriminationTask.Result, contentEvaluationTask.Result);
+    }
 
-        return new AiReviewResultV1
+    private VacancyAiReviewResponse CreateResponse(
+        Dictionary<string, string> fields,
+        AzureAiResponse<Dictionary<string, string?>> spellcheckResult,
+        AzureAiResponse<Dictionary<string, string?>> discriminationResult,
+        AzureAiResponse<Dictionary<string, string?>> contentEvaluationResult)
+    {
+        var (status, manualReviewRequired, errors) = checker.AssessResponse(fields, spellcheckResult, discriminationResult, contentEvaluationResult);
+        
+        return new VacancyAiReviewResponse
         {
-            SpellcheckResult = spellcheckTask.Result,
-            DiscriminationResult = discriminationTask.Result,
-            ContentEvaluationResult = contentEvaluationTask.Result,
+            Version = 1,
+            ManualReviewRequired = manualReviewRequired,
+            Status = status,
+            SpellcheckResult = spellcheckResult,
+            DiscriminationResult = discriminationResult,
+            ContentEvaluationResult = contentEvaluationResult,
+            Errors = errors,
         };
     }
 }

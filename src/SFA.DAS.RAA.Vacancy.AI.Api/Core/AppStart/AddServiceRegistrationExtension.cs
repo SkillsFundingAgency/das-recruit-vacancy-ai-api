@@ -5,7 +5,6 @@ using SFA.DAS.Api.Common.Configuration;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
 using SFA.DAS.RAA.Vacancy.AI.Api.Data;
-using SFA.DAS.RAA.Vacancy.AI.Api.LLM.Services;
 using SFA.DAS.RAA.Vacancy.AI.Api.Services;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Core.AppStart;
@@ -15,9 +14,6 @@ public static class AddServiceRegistrationExtension
 {
     public static void AddApplicationDependencies(this IServiceCollection services)
     {
-        // validators
-        services.AddScoped<ILLMExec, LLMExec>();
-        services.AddScoped<IVacancyQA, VacancyQA>();
         services.AddScoped<IRandomNumberGenerator, RandomNumberGenerator>();
         services.AddScoped<IAiReviewResultChecker, AiReviewResultChecker>();
         services.AddScoped<IAzureAiClient, AzureAiClient>();

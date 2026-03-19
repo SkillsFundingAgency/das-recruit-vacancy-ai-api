@@ -7,6 +7,7 @@ public class PutAiVacancyReviewDto
 {
     public bool ManualReviewRequired { get; set; }
     public string? Output { get; set; }
+    public double? Score { get; set; }
     [Required]
     public AiReviewStatus? Status { get; set; }
     [Required]

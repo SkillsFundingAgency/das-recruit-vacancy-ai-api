@@ -16,4 +16,5 @@ public class AiVacancyReviewEntity
     [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdatedDate { get; set; }
+    public double? Score { get; set; }
 }
