@@ -29,7 +29,11 @@ public class LlmController : ControllerBase
         [FromBody, Required] PostPerformReviewDto? data,
         CancellationToken cancellationToken)
     {
+        Console.WriteLine("START");
+        Console.WriteLine(vacancyReviewId);
         var aiVacancyReview = await dataContext.AiVacancyReviewEntities.FirstOrDefaultAsync(x => x.VacancyReviewId == vacancyReviewId, cancellationToken);
+        Console.WriteLine("FIRST STEP");
+        Console.WriteLine(aiVacancyReview);
         if (aiVacancyReview is null)
         {
             return TypedResults.NotFound();
@@ -46,6 +50,7 @@ public class LlmController : ControllerBase
 
         // update the entity
         aiVacancyReview.Output = JsonSerializer.Serialize(review, JsonOptions);
+        Console.WriteLine(aiVacancyReview.Output.ToString());
         aiVacancyReview.ManualReviewRequired = review.ManualReviewRequired;
         aiVacancyReview.Status = review.Status;
         aiVacancyReview.UpdatedDate = DateTime.Now;
