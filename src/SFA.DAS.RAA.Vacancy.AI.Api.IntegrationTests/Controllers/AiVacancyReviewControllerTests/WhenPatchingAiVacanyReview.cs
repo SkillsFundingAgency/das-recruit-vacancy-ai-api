@@ -97,7 +97,7 @@ public class WhenPatchingAiVacanyReview: BaseFixture
         targetItem.Output.Should().Be(expectedEntity.Output);
         targetItem.Status.Should().Be(expectedEntity.Status);
         targetItem.ManualReviewRequired.Should().Be(expectedEntity.ManualReviewRequired);
-        targetItem.UpdatedDate.Should().BeCloseTo(DateTime.Now, TimeSpan.FromSeconds(5));
+        targetItem.UpdatedDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
         Server.DataContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
