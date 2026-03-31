@@ -25,7 +25,6 @@ public class WhenPerformingVacancyReview
         VacancyAiReviewResponse vacancyAiReviewResult,
         CancellationToken cancellationToken,
         [Frozen] Mock<IRecruitAiService> aiService,
-        [Frozen] Mock<IAiReviewResultChecker> aiReviewResultChecker,
         [Frozen] Mock<IAiDataContext> dataContext,
         [Frozen] Mock<IEventsService> eventsService, 
         [Greedy] LlmController sut)
@@ -74,7 +73,6 @@ public class WhenPerformingVacancyReview
         VacancyAiReviewResponse vacancyAiReviewResult,
         CancellationToken cancellationToken,
         [Frozen] Mock<IRecruitAiService> aiService,
-        [Frozen] Mock<IAiReviewResultChecker> aiReviewResultChecker,
         [Frozen] Mock<IAiDataContext> dataContext,
         [Frozen] Mock<IEventsService> eventsService, 
         [Greedy] LlmController sut)
@@ -103,13 +101,58 @@ public class WhenPerformingVacancyReview
         eventsService.Verify(x => x.PublishAiVacancyReviewCompletedEventAsync(entity), Times.Exactly(times));
     }
     
+    [Test, MoqAutoData]
+    public async Task Then_If_The_Review_Is_Skipped_The_Entity_Is_Updated_And_The_Event_Published_Correctly(
+        PostPerformReviewDto? data,
+        CancellationToken cancellationToken,
+        [Frozen] Mock<IRecruitAiService> aiService,
+        [Frozen] Mock<IAiReviewResultChecker> aiReviewResultChecker,
+        [Frozen] Mock<IAiDataContext> dataContext,
+        [Frozen] Mock<IEventsService> eventsService, 
+        [Greedy] LlmController sut)
+    {
+        // arrange
+        var entity = new AiVacancyReviewEntity()
+        {
+            VacancyId =  Guid.NewGuid(),
+            VacancyReviewId = Guid.NewGuid(),
+            Status = AiReviewStatus.Skipped,
+            ManualReviewRequired = false,
+            UpdatedDate = null,
+            CreatedDate = DateTime.UtcNow.AddDays(-1),
+            Output = null,
+            Score = null,
+        };
+        
+        dataContext
+            .Setup(x => x.AiVacancyReviewEntities)
+            .ReturnsDbSet([entity]);
+        
+        // act
+        var result = await sut.PerformReview(
+            aiService.Object,
+            dataContext.Object,
+            eventsService.Object,
+            entity.VacancyReviewId,
+            data,
+            cancellationToken);
+        
+        // assert
+        result.Should().BeOfType<Ok>();
+        entity.Status.Should().Be(AiReviewStatus.Skipped);
+        entity.ManualReviewRequired.Should().BeTrue();
+        entity.UpdatedDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        entity.Output.Should().BeNull();
+        entity.Score.Should().BeNull();
+        dataContext.Verify(x => x.SaveChangesAsync(cancellationToken), Times.Once);
+        eventsService.Verify(x => x.PublishAiVacancyReviewCompletedEventAsync(entity), Times.Once());
+    }
     
     [Test, MoqAutoData]
     public async Task Then_If_The_Review_Does_Not_Exist_Not_Found_Is_Returned(
         PostPerformReviewDto? data,
         CancellationToken cancellationToken,
         [Frozen] Mock<IRecruitAiService> aiService,
-        [Frozen] Mock<IAiReviewResultChecker> aiReviewResultChecker,
         [Frozen] Mock<IAiDataContext> dataContext,
         [Frozen] Mock<IEventsService> eventsService, 
         [Greedy] LlmController sut)
