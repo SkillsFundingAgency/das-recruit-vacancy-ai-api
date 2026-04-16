@@ -35,6 +35,15 @@ public class LlmController : ControllerBase
             return TypedResults.NotFound();
         }
 
+        if (aiVacancyReview.Status is AiReviewStatus.Skipped)
+        {
+            aiVacancyReview.UpdatedDate = DateTime.UtcNow;
+            aiVacancyReview.ManualReviewRequired = true;
+            await dataContext.SaveChangesAsync(cancellationToken);
+            await eventsService.PublishAiVacancyReviewCompletedEventAsync(aiVacancyReview);
+            return TypedResults.Ok();
+        }
+        
         if (aiVacancyReview.Status is not AiReviewStatus.Pending)
         {
             // ignore anything that isn't in the pending state
@@ -48,7 +57,7 @@ public class LlmController : ControllerBase
         aiVacancyReview.Output = JsonSerializer.Serialize(review, JsonOptions);
         aiVacancyReview.ManualReviewRequired = review.ManualReviewRequired;
         aiVacancyReview.Status = review.Status;
-        aiVacancyReview.UpdatedDate = DateTime.Now;
+        aiVacancyReview.UpdatedDate = DateTime.UtcNow;
         aiVacancyReview.Score = review.Errors?.Sum(x => x.Score) ?? 0;
         await dataContext.SaveChangesAsync(cancellationToken);
             
