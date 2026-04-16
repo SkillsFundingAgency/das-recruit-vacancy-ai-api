@@ -25,11 +25,16 @@ public class AiReviewResultChecker(IRandomNumberGenerator generator): IAiReviewR
     {
         List<ReviewError> errors = [];
 
+
+
         CheckSpellingResult(fields, errors, spellCheckResult);
         CheckDiscriminationResult(fields, errors, discriminationResult);
         CheckContentEvaluationResult(fields, errors, contentEvaluationResult);
         
         var totalScore = errors.Sum(x => x.Score);
+
+
+
         return totalScore switch
         {
             0 => (AiReviewStatus.Passed, 0.01 + generator.NextDouble() >= 1, null),

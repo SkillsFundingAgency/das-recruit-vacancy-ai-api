@@ -1,18 +1,23 @@
-﻿using System.ClientModel;
-using System.ClientModel.Primitives;
-using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
-using Azure;
+﻿using Azure;
 using Azure.AI.OpenAI;
+//using Newtonsoft.Json.Schema;
 using OpenAI.Chat;
-using System.ComponentModel;
-
 using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
+using System.ClientModel;
+using System.ClientModel.Primitives;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+
+using NJsonSchema;
+using NJsonSchema.Generation;
+
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
 
-public class AzureAISchema {
+/*public class AzureAISchema {
     public  string Title { get; init; } = string.Empty;
     public  string ShortDescription { get; init; } = string.Empty;
     public  string Description { get; init; } = string.Empty;
@@ -31,7 +36,7 @@ public class AzureAISchema {
     public  string WageWorkingWeekDescription { get; init; } = string.Empty;
 
 }
-
+*/
 public record AzureAiClientPrompt(string SystemPrompt, string[] UserPrompts, float? Temperature = null);
 
 public interface IAzureAiClient
@@ -62,25 +67,14 @@ public class AzureAiClient(VacancyAiConfiguration configuration) : IAzureAiClien
         var openAiClient = new AzureOpenAIClient(uri, credential, clientOptions);
         var gptClient = openAiClient.GetChatClient("gpt-4o");
 
-        // JSON mode schema in OpenAI documentation doesn't ensure that the output returned has the same columns as that in the input. 
-        // This can occur because the model hallucinates new columns into the output as valid JSON.
-        // We now leverage the Azure OpenAI structured output mode to fix this.
-        
-       
-        
         try
         {
-            var azAIschema = new AzureAISchema();
+        
+ 
             var chatOptions = new ChatCompletionOptions 
             {
-                //ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat(),
-                ResponseFormat=ChatResponseFormat.CreateJsonSchemaFormat(
-                    "vacancy_review",
-                    BinaryData.FromObjectAsJson(azAIschema),
-                    "The structure of the vacancy you are tasked with reviewing",
-                    true // strictness parameter
-                    ),
-                Temperature = prompt.Temperature,
+                ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat(),              
+                Temperature = prompt.Temperature,                
             };
             var response = await gptClient.CompleteChatAsync(messages, chatOptions, cancellationToken);
             return AzureAiResponse<TResult>.From(response);

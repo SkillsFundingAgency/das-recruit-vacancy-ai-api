@@ -119,15 +119,17 @@ public class RecruitAiService(
 
             3. Description Quality & Coherence
             PASS (return NULL) if ALL required fields:
-            (Short description, full description, employer description)
+            (Short description, full description, employer description) 
             •	Provide a clear, representative picture of the role and its expectations. 
             •	Contain sufficient detail for an applicant to understand the job. 
             •	Outline specific day to day duties appropriate for the qualification level. 
             •	Are coherent and mutually related. 
             FAIL if ANY required field:
-            •	Lacks sufficient detail.
+            •	Lacks sufficient detail
             •	Does not describe the duties or expectations clearly.
             •	Is poorly aligned with the other fields.
+
+
 
             4. Completeness of Required Fields
             PASS (return NULL) if:
@@ -144,7 +146,8 @@ public class RecruitAiService(
             FAIL if ANY required field:
             •	Contains incomplete text, abrupt endings, or ellipses (“...”).
             •	Shows evidence of being abridged or truncated.
-            •	Is missing or substantively empty and is not an optional field.            
+            •	Is missing or substantively empty and is not an optional field.
+           
             """);
         var contentEvaluationPrompt_copilotopt = new AzureAiClientPrompt(
             configuration.MissingContentPrompt.SystemPrompt,
@@ -153,7 +156,7 @@ public class RecruitAiService(
             );
 
         string spellcheck_altprompt= """
-                        Correct any spelling / grammar in the JSON document and provide explanation of any errors identified. 
+            Correct any spelling / grammar in the JSON document and provide explanation of any errors identified.             
             This includes:
             - Typos or misspellings
             - Improper use of grammar that significantly change the meaning or are not valid sentences.
@@ -169,7 +172,7 @@ public class RecruitAiService(
             - incorrect use of spacing (e.g. two spaces instead of one) or use oftabs.
             - use of valid shortenings.            
             - use of html tags (associated to the input format of the data - these can be ignored), 
-            - use of \n or \t tags or  '&nbsp' / '&amp' or similar markdown/html tags (associated to the input format of the data - these can be ignored)          
+            - use of \n or \t tags or  '&nbsp' / '&amp' or similar markdown/html tags (associated to the input format of the data - these can be ignored)                
             - any minor change not strictly needed for correctness of the text.
             - any other issue not explicitly related to spelling / grammar such as discrimination or choice of language used.
 
@@ -181,7 +184,9 @@ public class RecruitAiService(
             [spellcheck_altprompt, configuration.SpellingCheckPrompt.UserInstruction],
             configuration.Temperature.MissingContent
             );
+
         
+
 
         string DiscrimCheck_altprompt=new("""
             Please review the JSON document provided and identify if any discrimination is present within the document. 
@@ -203,8 +208,129 @@ public class RecruitAiService(
 
         var altdiscrimtask = azureAiClient.PerformCheckAsync<Dictionary<string, string?>>(discriminationPrompt_altconfig, fields, cancellationToken);
 
-        await Task.WhenAll(contentEvaluationTask_HumanOpt,contentEvaluationTask_copilotOpt,altspellingtask,altdiscrimtask);
-        return CreateResponse(fields, spellcheckTask.Result, discriminationTask.Result, contentEvaluationTask.Result, contentEvaluationTask_HumanOpt.Result, contentEvaluationTask_copilotOpt.Result,altspellingtask.Result,altdiscrimtask.Result);
+
+        await Task.WhenAll(contentEvaluationTask_HumanOpt, contentEvaluationTask_copilotOpt, altspellingtask, altdiscrimtask);
+        //// CORRECTION BASED ON CLUSTER ANALYSIS
+        ///
+        string spellcheck_altprompt_corr = """
+            Identify any spelling / grammar in the JSON document and provide explanation of any errors identified. 
+            This includes:
+            - Typos or misspellings
+            - Improper use of grammar that significantly change the meaning or are not valid sentences.
+            - Incorrect use of verb tenses / grammar structures.
+
+
+            Please do not consider the following as spelling / grammar mistakes in this specification:
+            - Empty documents or empty lists - these fields may be considered optional.            
+            - Incorrect use of US English Spellings as opposed to UK English spellings.
+            - Use of informal language
+            - minor readability issues / idiom where the text is grammatically valid but required some additional clarity to aid flow / readability.
+            - Use of shortening punctuation such as "&" instead of "and" which have no significant changes to the text.           
+            - incorrect use of spacing (e.g. two spaces instead of one) or use oftabs.
+            - use of valid shortenings.            
+            - use of html tags (associated to the input format of the data - these can be ignored), 
+            - use of \n or \t tags or  '&nbsp' / '&amp' or similar markdown/html tags (associated to the input format of the data - these can be ignored)     
+            - any time formatting such as "9am" to "9:00am" or "9.00am" to "9:00am", "Mon" to "Monday" or similar time formatting changes, as they will be generally understood to be equivalent by a human.
+            - any minor change not strictly needed for correctness of the text.
+            - any other issue not explicitly related to spelling / grammar such as discrimination or choice of language used.
+
+
+            Return the same JSON structure as the input with no additional fields, each field value should either be null with no further explanation / commentary if there were no errors for that field or return an explanation if an issue is identified.             
+            """;
+        string spellcheck_userinstruction = " ";
+        var spellingPrompt_altconfig_corr = new AzureAiClientPrompt(
+            configuration.SpellingCheckPrompt.SystemPrompt,
+            [spellcheck_altprompt_corr, spellcheck_userinstruction],
+            configuration.Temperature.MissingContent
+            );
+
+
+        string contentevalinstruction_corr = """
+        Vacancies must satisfy the following requirements
+           
+        1. Training–Role Consistency
+        PASS (return NULL) if:
+        •	The training standard/framework is relevant to the described job role. 
+        •	The standard is broad and legitimately applicable across many industries (e.g., Team Leader, Customer Service, Business Administrator, Content Creator, IT Support). Such vacancies may contain duties and titles differing from standard expectations but remain acceptable as these positions are broad in scope. 
+        •	The job title differs in wording but is similar or synonymous to the standard title (e.g., “Early Years Educator,” “Early Years Teacher,” “Reception Teacher”). 
+        •	The job title and the standard appear aligned in a way a human reviewer would judge reasonable, even if titles are not identical.
+        FAIL if:
+        •	The training standard/framework is clearly mismatched to the job role.
+        Example: Engineering job description paired with a Chef standard.
+
+        2. Course Level Alignment
+        PASS (return NULL) if:
+        •	The apprenticeship level in the text matches the level of the attached training standard. 
+        FAIL if:
+        •	The role describes a Level N apprenticeship, but the linked standard is not Level N. 
+        3. Description Quality & Coherence
+        PASS (return NULL) if ALL required fields:
+        (Short description, full description, employer description) 
+        •	Provide a clear, representative picture of the role and its expectations. 
+        •	Contain sufficient detail for an applicant to understand the job. 
+        •	Outline specific day to day duties appropriate for the qualification level. 
+        •	Are coherent and mutually related. 
+        FAIL if ANY required field:
+        •	Lacks sufficient detail
+        •	Does not describe the duties or expectations clearly.
+        •	Is poorly aligned with the other fields.
+         Constraint: Optional fields may have brief text in these sections and should not be identified as failing this rule.
+        • The training description and additional training description fields are optional and may lack detail and should not be considered a violation of this rule            
+        • ThingsToConsider is an optional field and thus may lack detail and should not be considered a violation of this rule.
+        • Question1/ Question2 are both optional fields and may lack detail and should not be considered a violation of this rule.
+        • applicationInstructions is optional and may lack detail and should not be considered a violation of this rule.
+        • wageAdditionalInformation is optional and may lack detail and should not be considered a violation of this rule.
+        • CompanyBenefitsInformation is optional and may lack detail and should not be considered a violation of this rule.
+
+
+        4. Completeness of Required Fields
+        PASS (return NULL) if:
+        •	All required description fields are complete and do not contain ellipses (“...”) or placeholders. 
+        •	The training description may be empty without issue. 
+        •	The additional training description may be empty without issue.
+        •	 ThingsToConsider is optional and may also be empty without issue.
+        •	Question1 is considered optional and thus may be empty without issue.
+        •	Question2 is considered optional and thus may be empty without issue.
+        •	applicationInstructions is considered optional and thus may be empty without issue.
+        •	wageAdditionalInformation is considered optional and thus may be empty without issue.
+        •	CompanyBenefitsInformation is considered optional and thus may be empty without issue.
+
+        FAIL if ANY required field:
+        •	Contains incomplete text, abrupt endings, or ellipses (“...”).
+        •	Shows evidence of being abridged or truncated.
+        •	Is missing or substantively empty and is not an optional field.
+
+     """;
+
+        var contentEvaluationPrompt_corr = new AzureAiClientPrompt(
+           configuration.MissingContentPrompt.SystemPrompt,
+           [contentevalinstruction_corr, configuration.MissingContentPrompt.UserInstruction],
+           configuration.Temperature.MissingContent
+           );
+
+
+        var ContentEvaluationTask_corr = azureAiClient.PerformCheckAsync<Dictionary<string, string?>>(contentEvaluationPrompt_corr, fields, cancellationToken);
+        var altspellingtask_corr = azureAiClient.PerformCheckAsync<Dictionary<string, string?>>(spellingPrompt_altconfig_corr, fields, cancellationToken);
+
+        await Task.WhenAll(ContentEvaluationTask_corr,altspellingtask_corr);
+
+
+
+
+
+
+        return CreateResponse(
+            fields, 
+            spellcheckTask.Result, 
+            discriminationTask.Result, 
+            contentEvaluationTask.Result, 
+            contentEvaluationTask_HumanOpt.Result, 
+            contentEvaluationTask_copilotOpt.Result,
+            altspellingtask.Result,
+            altdiscrimtask.Result,            
+            ContentEvaluationTask_corr.Result,
+            altspellingtask_corr.Result
+            );
     }
 
     private VacancyAiReviewResponse CreateResponse(
@@ -212,18 +338,27 @@ public class RecruitAiService(
         AzureAiResponse<Dictionary<string, string?>> spellcheckResult,
         AzureAiResponse<Dictionary<string, string?>> discriminationResult,
         AzureAiResponse<Dictionary<string, string?>> contentEvaluationResult,
-        AzureAiResponse<Dictionary<string,string?>>? contentEvalTaskManualOptResult,
-        AzureAiResponse<Dictionary<string, string?>>? contentEvalTaskCopilotOptResult,
-        AzureAiResponse<Dictionary<string,string?>>? altSpellingTest,
-        AzureAiResponse<Dictionary<string,string?>>? altDiscrimTest
+        AzureAiResponse<Dictionary<string, string?>> contentEvalTaskManualOptResult,
+        AzureAiResponse<Dictionary<string, string?>> contentEvalTaskCopilotOptResult,
+        AzureAiResponse<Dictionary<string, string?>> altSpellingTest,
+        AzureAiResponse<Dictionary<string, string?>> altDiscrimTest,
+        AzureAiResponse<Dictionary<string, string?>> corrcontenttestResult,
+        AzureAiResponse<Dictionary<string, string?>> corrspelltestResult
         )
         
     {
         var (status, manualReviewRequired, errors) = checker.AssessResponse(fields, spellcheckResult, discriminationResult, contentEvaluationResult);
+
+        var (status_newconfig, manualReviewRequired_newconfig, errors_newconfig) = checker.AssessResponse(fields, altSpellingTest, altDiscrimTest, contentEvalTaskCopilotOptResult);
+        var (status_mixedconfig, manualReviewRequired_mixedconfig, errors_mixedconfig) = checker.AssessResponse(fields, spellcheckResult, altDiscrimTest, contentEvalTaskCopilotOptResult);
+
+
+        var (status_corrconfig, manualReviewRequired_corrconfig, errors_corrconfig) = checker.AssessResponse(fields, corrspelltestResult, altDiscrimTest, corrcontenttestResult);
+
         
         return new VacancyAiReviewResponse
         {
-            Version = 1,
+            Version = 4,
             ManualReviewRequired = manualReviewRequired,
             Status = status,
             SpellcheckResult = spellcheckResult,
@@ -234,6 +369,21 @@ public class RecruitAiService(
             SpellingTaskManualOpt = altSpellingTest,
             DiscrimTaskManualOpt=altDiscrimTest,
             Errors = errors,
+            Status_newconfig=status_newconfig,
+            ManualReviewRequired_newconfig=manualReviewRequired_newconfig,
+            Errors_newconfig=errors_newconfig,
+
+            ContentEvalTaskCorrResult=corrcontenttestResult,
+            SpellingTaskCorrResult=corrspelltestResult,
+
+            Status_mixedconfig =status_mixedconfig,
+            ManualReviewRequired_mixedconfig = manualReviewRequired_mixedconfig,
+            Errors_mixedconfig = errors_mixedconfig,
+
+            Status_corrconfig=status_corrconfig,
+            ManualReviewRequired_corrconfig=manualReviewRequired_corrconfig,
+            Errors_corrconfig = errors_corrconfig
+
         };
     }
 }

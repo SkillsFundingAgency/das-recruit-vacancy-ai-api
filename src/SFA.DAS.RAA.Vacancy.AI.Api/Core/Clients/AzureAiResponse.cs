@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text.Json;
 using OpenAI.Chat;
+using NJsonSchema;
+using NJsonSchema.Generation;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
 
