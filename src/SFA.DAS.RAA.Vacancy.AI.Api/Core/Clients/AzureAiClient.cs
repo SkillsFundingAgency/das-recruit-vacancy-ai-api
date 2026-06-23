@@ -37,7 +37,7 @@ public class AzureAiClient(VacancyAiConfiguration configuration) : IAzureAiClien
             RetryPolicy = new ClientRetryPolicy(MaxRetryAttempts)
         };
         var openAiClient = new AzureOpenAIClient(uri, credential, clientOptions);
-        var gptClient = openAiClient.GetChatClient("gpt-4o");
+        var gptClient = openAiClient.GetChatClient("gpt-5");
 
         try
         {
