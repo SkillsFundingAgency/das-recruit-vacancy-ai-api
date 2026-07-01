@@ -35,6 +35,7 @@
     <PackageReference Include="SFA.DAS.Api.Common" Version="17.1.165" />
     <PackageReference Include="SFA.DAS.Encoding" Version="1.1.93" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
+    <PackageReference Include="OpenTelemetry.Api" Version="1.16.0"/>
   </ItemGroup>
 
   <ItemGroup>
