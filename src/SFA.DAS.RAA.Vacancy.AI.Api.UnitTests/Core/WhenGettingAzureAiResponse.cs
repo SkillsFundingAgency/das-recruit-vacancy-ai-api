@@ -33,7 +33,7 @@ public class WhenGettingAzureAiResponse
     }
     
     [Test]
-    public void Then_Exceptions_Are_Mapped_Correctly()
+    public void Then_ClientResultExceptions_Are_Mapped_Correctly()
     {
         // arrange
         var exception = new ClientResultException("message contents", new MockPipelineResponse());
@@ -43,6 +43,48 @@ public class WhenGettingAzureAiResponse
 
         // assert
         actual.StatusCode.Should().Be((HttpStatusCode)exception.Status);
+        actual.Refusal.Should().Be(exception.Message);
+    }
+    
+    [Test]
+    public void Then_HttpRequestExceptions_Are_Mapped_Correctly()
+    {
+        // arrange
+        var exception = new HttpRequestException(HttpRequestError.HttpProtocolError, "message contents", statusCode: HttpStatusCode.BadGateway);
+
+        // act
+        var actual = AzureAiResponse<string>.From(exception);
+
+        // assert
+        actual.StatusCode.Should().Be((HttpStatusCode)exception.StatusCode);
+        actual.Refusal.Should().Be(exception.Message);
+    }
+    
+    [Test]
+    public void Then_AggregateExceptions_Are_Mapped_Correctly()
+    {
+        // arrange
+        var exception = new AggregateException([new HttpRequestException(HttpRequestError.HttpProtocolError, "message contents", statusCode: HttpStatusCode.BadGateway)]);
+
+        // act
+        var actual = AzureAiResponse<string>.From(exception);
+
+        // assert
+        actual.StatusCode.Should().Be(HttpStatusCode.BadGateway);
+        actual.Refusal.Should().Be("message contents");
+    }
+    
+    [Test]
+    public void Then_Exceptions_Are_Mapped_Correctly()
+    {
+        // arrange
+        var exception = new Exception("message contents");
+
+        // act
+        var actual = AzureAiResponse<string>.From(exception);
+
+        // assert
+        actual.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
         actual.Refusal.Should().Be(exception.Message);
     }
     

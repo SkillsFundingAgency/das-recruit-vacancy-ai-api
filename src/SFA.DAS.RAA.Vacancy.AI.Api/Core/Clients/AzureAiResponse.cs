@@ -57,13 +57,29 @@ public class AzureAiResponse<T> where T: class
             return false;
         }
     }
-    
-    public static AzureAiResponse<T> From(ClientResultException exception)
+
+    public static AzureAiResponse<T> From(Exception exception)
     {
-        return new AzureAiResponse<T>
+        while (true)
         {
-            Refusal = exception.Message,
-            StatusCode = (HttpStatusCode)exception.Status,
-        };
+            switch (exception)
+            {
+                case ClientResultException clientResultException:
+                    return new AzureAiResponse<T> { Refusal = clientResultException.Message, StatusCode = (HttpStatusCode)clientResultException.Status, };
+                case HttpRequestException httpRequestException:
+                    return new AzureAiResponse<T> { Refusal = httpRequestException.Message, StatusCode = httpRequestException.StatusCode ?? HttpStatusCode.InternalServerError, };
+                case AggregateException aggregateException:
+                {
+                    if (aggregateException.InnerExceptions is not { Count: > 0 })
+                    {
+                        return new AzureAiResponse<T> { Refusal = aggregateException.Message, StatusCode = HttpStatusCode.InternalServerError, };
+                    }
+                    exception = aggregateException.InnerExceptions[0];
+                    continue;
+                }
+                default:
+                    return new AzureAiResponse<T> { Refusal = exception.Message, StatusCode = HttpStatusCode.InternalServerError, };
+            }
+        }
     }
 }
