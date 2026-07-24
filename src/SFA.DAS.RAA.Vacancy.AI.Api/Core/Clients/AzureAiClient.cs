@@ -1,11 +1,6 @@
-﻿using System.ClientModel;
-using System.ClientModel.Primitives;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
-using Azure;
-using Azure.AI.OpenAI;
 using OpenAI.Chat;
-using SFA.DAS.RAA.Vacancy.AI.Api.Core.Configuration;
 
 namespace SFA.DAS.RAA.Vacancy.AI.Api.Core.Clients;
 
@@ -17,10 +12,8 @@ public interface IAzureAiClient
 }
 
 [ExcludeFromCodeCoverage(Justification = "Has a dependency on AzureOpenAiClient")]
-public class AzureAiClient(VacancyAiConfiguration configuration) : IAzureAiClient
+public class AzureAiClient(IChatGptClient chatGptClient) : IAzureAiClient
 {
-    private const int MaxRetryAttempts = 4;
-    
     public async Task<AzureAiResponse<TResult>> PerformCheckAsync<TResult>(AzureAiClientPrompt prompt, Dictionary<string, string> items, CancellationToken cancellationToken) where TResult : class
     {
         ArgumentNullException.ThrowIfNull(prompt);
@@ -30,15 +23,6 @@ public class AzureAiClient(VacancyAiConfiguration configuration) : IAzureAiClien
         messages.AddRange(prompt.UserPrompts.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => new UserChatMessage(x)).ToList());
         messages.Add(new UserChatMessage(JsonSerializer.Serialize(items)));
 
-        var uri = new Uri(configuration.LlmEndpointShort);
-        var credential = new AzureKeyCredential(configuration.LlmKey);
-        var clientOptions = new AzureOpenAIClientOptions
-        {
-            RetryPolicy = new ClientRetryPolicy(MaxRetryAttempts)
-        };
-        var openAiClient = new AzureOpenAIClient(uri, credential, clientOptions);
-        var gptClient = openAiClient.GetChatClient("gpt-5.1");
-
         try
         {
             var chatOptions = new ChatCompletionOptions 
@@ -46,10 +30,10 @@ public class AzureAiClient(VacancyAiConfiguration configuration) : IAzureAiClien
                 ResponseFormat = ChatResponseFormat.CreateJsonObjectFormat(),
                 Temperature = prompt.Temperature,
             };
-            var response = await gptClient.CompleteChatAsync(messages, chatOptions, cancellationToken);
+            var response = await chatGptClient.CompleteChatAsync(messages, chatOptions, cancellationToken);
             return AzureAiResponse<TResult>.From(response);
         }
-        catch (ClientResultException e)
+        catch (Exception e)
         {
             return AzureAiResponse<TResult>.From(e);
         }

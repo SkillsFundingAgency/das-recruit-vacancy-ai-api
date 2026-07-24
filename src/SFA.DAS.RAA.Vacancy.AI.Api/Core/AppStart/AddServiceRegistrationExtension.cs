@@ -16,6 +16,7 @@ public static class AddServiceRegistrationExtension
     {
         services.AddScoped<IRandomNumberGenerator, RandomNumberGenerator>();
         services.AddScoped<IAiReviewResultChecker, AiReviewResultChecker>();
+        services.AddScoped<IChatGptClient, ChatGptClient>();
         services.AddScoped<IAzureAiClient, AzureAiClient>();
         services.AddScoped<IRecruitAiService, RecruitAiService>();
         services.AddScoped<IEventsService, EventsService>();
