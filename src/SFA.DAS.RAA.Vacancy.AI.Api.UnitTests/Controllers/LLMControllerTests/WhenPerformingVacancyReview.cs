@@ -52,7 +52,8 @@ public class WhenPerformingVacancyReview
             cancellationToken);
     
         // assert
-        result.Should().BeOfType<Ok>();
+        var ok = result.Should().BeOfType<Ok<PerformReviewResponse>>().Subject;
+        ok.Value!.Status.Should().Be(AiReviewStatus.Passed);
         entity.Status.Should().Be(AiReviewStatus.Passed);
         entity.ManualReviewRequired.Should().BeFalse();
         entity.UpdatedDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
@@ -138,7 +139,8 @@ public class WhenPerformingVacancyReview
             cancellationToken);
         
         // assert
-        result.Should().BeOfType<Ok>();
+        var ok = result.Should().BeOfType<Ok<PerformReviewResponse>>().Subject;
+        ok.Value!.Status.Should().Be(AiReviewStatus.Skipped);
         entity.Status.Should().Be(AiReviewStatus.Skipped);
         entity.ManualReviewRequired.Should().BeTrue();
         entity.UpdatedDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
