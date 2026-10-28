@@ -19,7 +19,7 @@ public class LlmController : ControllerBase
     };
     
     [HttpPost, Route("vacancyReview/{vacancyReviewId:guid}/review")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PerformReviewResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IResult> PerformReview(
         [FromServices] IRecruitAiService aiService,
@@ -41,15 +41,15 @@ public class LlmController : ControllerBase
             aiVacancyReview.ManualReviewRequired = true;
             await dataContext.SaveChangesAsync(cancellationToken);
             await eventsService.PublishAiVacancyReviewCompletedEventAsync(aiVacancyReview);
-            return TypedResults.Ok();
+            return TypedResults.Ok(new PerformReviewResponse { Status = AiReviewStatus.Skipped });
         }
-        
+
         if (aiVacancyReview.Status is not AiReviewStatus.Pending)
         {
             // ignore anything that isn't in the pending state
-            return TypedResults.Ok();
+            return TypedResults.Ok(new PerformReviewResponse { Status = aiVacancyReview.Status });
         }
-        
+
         // perform the review
         var review = await aiService.ReviewVacancyAsync(data!, cancellationToken);
 
@@ -60,8 +60,8 @@ public class LlmController : ControllerBase
         aiVacancyReview.UpdatedDate = DateTime.UtcNow;
         aiVacancyReview.Score = review.Errors?.Sum(x => x.Score) ?? 0;
         await dataContext.SaveChangesAsync(cancellationToken);
-            
+
         await eventsService.PublishAiVacancyReviewCompletedEventAsync(aiVacancyReview);
-        return TypedResults.Ok();
+        return TypedResults.Ok(new PerformReviewResponse { Status = review.Status });
     }
 }
